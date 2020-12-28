@@ -1,0 +1,11 @@
+# ignore ansible log
+ansible.log
+
+# ignore these since they are dynamic
+artifacts/*
+!artifacts/.gitkeep
+
+# ignore all envs EXCEPT sample env
+# REMOVE THIS LINE IF YOU WANT TO COMMIT YOUR ENV
+env/*
+!env/sample
