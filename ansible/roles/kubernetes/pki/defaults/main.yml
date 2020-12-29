@@ -1,0 +1,61 @@
+artifacts_dir: "{{ playbook_dir }}/../artifacts"
+# default location to place pki
+pki_dir: "{{ artifacts_dir }}/pki"
+etcd_pki_dir: "{{ pki_dir }}/etcd"
+k8s_pki_dir: "{{ pki_dir }}/k8s"
+user_accounts_pki_dir: "{{ pki_dir }}/users"
+
+# etcd root CA details (both peer and client)
+etcd_root_ca:
+  curve: secp521r1
+  digest: sha512
+  expiration: "+3650d"
+
+# etcd peers
+etcd_peer:
+  curve: secp256r1
+  digest: sha256
+  expiration: "+365d"
+
+# k8s system root CA details
+k8s_root_ca:
+  curve: secp521r1
+  digest: sha512
+  expiration: "+3650d"
+  cn: Kubernetes Root CA (dev)
+
+# apiserver details:
+k8s_apiserver:
+  curve: secp256r1
+  digest: sha256
+  expiration: "+365d"
+
+# controller-manager
+k8s_controller_manager:
+  curve: secp256r1
+  digest: sha256
+  expiration: "+365d"
+
+# scheduler
+k8s_scheduler:
+  curve: secp256r1
+  digest: sha256
+  expiration: "+365d"
+
+# kube-proxy
+k8s_kube_proxy:
+  curve: secp256r1
+  digest: sha256
+  expiration: "+365d"
+
+# kublet worker nodes
+k8s_kublet:
+  curve: secp256r1
+  digest: sha256
+  expiration: "+365d"
+
+# admin user
+k8s_admin:
+  curve: secp256r1
+  digest: sha256
+  expiration: "+365d"

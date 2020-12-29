@@ -1,0 +1,28 @@
+---
+- name: Generate k8s ca private key
+  openssl_privatekey:
+    type: ECC
+    curve: "{{ k8s_root_ca.curve }}"
+    path: "{{ k8s_pki_dir }}/k8s-ca.key"
+
+- name: Generate k8s ca csr
+  openssl_csr:
+    path: "{{ k8s_pki_dir }}/k8s-ca.csr"
+    privatekey_path: "{{ k8s_pki_dir }}/k8s-ca.key"
+    basic_constraints: "CA:TRUE"
+    basic_constraints_critical: true
+    useCommonNameForSAN: false
+    key_usage:
+      - cRLSign
+      - keyCertSign
+    key_usage_critical: true
+    common_name: "{{ k8s_root_ca.cn }}"
+
+- name: Generate k8s ca certificate
+  openssl_certificate:
+    provider: selfsigned
+    selfsigned_not_after: "{{ k8s_root_ca.expiration }}"
+    selfsigned_digest: "{{ k8s_root_ca.digest }}"
+    path: "{{ k8s_pki_dir }}/k8s-ca.crt"
+    privatekey_path: "{{ k8s_pki_dir }}/k8s-ca.key"
+    csr_path: "{{ k8s_pki_dir }}/k8s-ca.csr"

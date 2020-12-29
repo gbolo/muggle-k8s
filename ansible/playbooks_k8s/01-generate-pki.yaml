@@ -1,0 +1,6 @@
+---
+- name: Generate ALL required PKI for kubernetes/etcd
+  hosts: localhost
+  connection: local
+  roles:
+    - kubernetes/pki

@@ -1,0 +1,69 @@
+---
+  
+- name: Assertions
+  include: 00-assertions.yaml
+  tags:
+    - always
+
+- name: Create pki directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "{{ k8s_pki_dir }}"
+    - "{{ etcd_pki_dir }}"
+    - "{{ user_accounts_pki_dir }}"
+  tags:
+    - always
+
+- name: Etcd CA
+  include: 01-etcd-ca.yaml
+  tags:
+    - etcd
+    - etcd-ca
+
+- name: k8s CA
+  include: 01-k8s-ca.yaml
+  tags:
+    - master
+    - k8s-ca
+
+- name: Etcd Peers
+  include: 02-etcd.yaml
+  tags:
+    - etcd
+
+- name: kube-apiserver
+  include: 03-apiserver.yaml
+  tags:
+    - master
+    - kube-apiserver
+
+- name: kube-controller-manager
+  include: 03-controller-manager.yaml
+  tags:
+    - master
+    - kube-controller-manager
+
+- name: kube-scheduler
+  include: 03-scheduler.yaml
+  tags:
+    - master
+    - kube-scheduler
+
+- name: kubelet
+  include: 04-kubelet.yaml
+  tags:
+    - node
+    - kubelet
+
+- name: kube-proxy
+  include: 04-kube-proxy.yaml
+  tags:
+    - node
+    - kube-proxy
+
+- name: admin account
+  include: 05-admin.yaml
+  tags:
+    - admin

@@ -1,0 +1,9 @@
+---
+- name: "Ensure that mandatory variables are defined properly"
+  assert:
+    that:
+      # we need this var to make the PKI properly.
+      # We shouldn't have a default value for it.
+      - k8s_master_lb_fqdn is defined and k8s_master_lb_fqdn | length > 3
+      # make sure that this is a proper IP
+      - apiserver_k8s_service_ip is defined and apiserver_k8s_service_ip | ansible.netcommon.ipv4

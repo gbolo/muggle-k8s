@@ -1,0 +1,36 @@
+---
+- name: Generate etcd CA private keys
+  openssl_privatekey:
+    type: ECC
+    curve: "{{ etcd_root_ca.curve }}"
+    path: "{{ etcd_pki_dir }}/{{ item }}.key"
+  loop:
+    - etcd-server-ca
+    - etcd-peer-ca
+
+- name: Generate etcd ca csr
+  openssl_csr:
+    path: "{{ etcd_pki_dir }}/{{ item }}.csr"
+    privatekey_path: "{{ etcd_pki_dir }}/{{ item }}.key"
+    basic_constraints: "CA:TRUE"
+    basic_constraints_critical: true
+    key_usage:
+      - cRLSign
+      - keyCertSign
+    key_usage_critical: true
+    common_name: "{{ item }}"
+  loop:
+    - etcd-server-ca
+    - etcd-peer-ca
+
+- name: Generate etcd ca certificates
+  openssl_certificate:
+    provider: selfsigned
+    selfsigned_not_after: "{{ etcd_root_ca.expiration }}"
+    selfsigned_digest: "{{ etcd_root_ca.digest }}"
+    path: "{{ etcd_pki_dir }}/{{ item }}.crt"
+    privatekey_path: "{{ etcd_pki_dir }}/{{ item }}.key"
+    csr_path: "{{ etcd_pki_dir }}/{{ item }}.csr"
+  loop:
+    - etcd-server-ca
+    - etcd-peer-ca

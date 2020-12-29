@@ -1,0 +1,79 @@
+---
+- name: Gather instance facts
+  setup:
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ groups['worker'] }}"
+
+# server cert for kublet api endpoint ------------------------------------------
+- name: Generate kubelet servers private keys
+  openssl_privatekey:
+    type: ECC
+    curve: "{{ k8s_kublet.curve }}"
+    path: '{{ k8s_pki_dir }}/{{ item }}-kublet.key'
+  loop: "{{ groups['worker'] }}"
+
+- name: Generate kubelet servers csrs
+  openssl_csr:
+    path: "{{ k8s_pki_dir }}/{{ item }}-kublet.csr"
+    privatekey_path: "{{ k8s_pki_dir }}/{{ item }}-kublet.key"
+    common_name: "system:node:{{ item }}"
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+    key_usage_critical: true
+    extended_key_usage:
+      - clientAuth
+      - serverAuth
+    extended_key_usage_critical: true
+    organization_name: 'system:nodes'
+    subject_alt_name:
+      - DNS:{{ item }}
+      - IP:127.0.0.1
+      - IP:{{ hostvars[item].ansible_default_ipv4.address }}
+  loop: "{{ groups['worker'] }}"
+
+- name: Generate kubelet servers certificates
+  openssl_certificate:
+    path: '{{ k8s_pki_dir }}/{{ item }}-kublet.crt'
+    csr_path: '{{ k8s_pki_dir }}/{{ item }}-kublet.csr'
+    ownca_path: '{{ k8s_pki_dir }}/k8s-ca.crt'
+    ownca_privatekey_path: '{{ k8s_pki_dir }}/k8s-ca.key'
+    ownca_not_after: "{{ k8s_kublet.expiration }}"
+    ownca_digest: "{{ k8s_kublet.digest }}"
+    provider: ownca
+  loop: "{{ groups['worker'] }}"
+
+
+# client cert for kublet uses for auth to apiserver ----------------------------
+- name: Generate kubelet clients private keys
+  openssl_privatekey:
+    type: ECC
+    curve: "{{ k8s_kublet.curve }}"
+    path: '{{ k8s_pki_dir }}/{{ item }}-kublet-client.key'
+  loop: "{{ groups['worker'] }}"
+
+- name: Generate kubelet clients csrs
+  openssl_csr:
+    path: "{{ k8s_pki_dir }}/{{ item }}-kublet-client.csr"
+    privatekey_path: "{{ k8s_pki_dir }}/{{ item }}-kublet-client.key"
+    common_name: "system:node:{{ item }}"
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+    key_usage_critical: true
+    extended_key_usage: clientAuth
+    extended_key_usage_critical: true
+    organization_name: 'system:nodes'
+  loop: "{{ groups['worker'] }}"
+
+- name: Generate kubelet clients certificates
+  openssl_certificate:
+    path: '{{ k8s_pki_dir }}/{{ item }}-kublet-client.crt'
+    csr_path: '{{ k8s_pki_dir }}/{{ item }}-kublet-client.csr'
+    ownca_path: '{{ k8s_pki_dir }}/k8s-ca.crt'
+    ownca_privatekey_path: '{{ k8s_pki_dir }}/k8s-ca.key'
+    ownca_not_after: "{{ k8s_kublet.expiration }}"
+    ownca_digest: "{{ k8s_kublet.digest }}"
+    provider: ownca
+  loop: "{{ groups['worker'] }}"

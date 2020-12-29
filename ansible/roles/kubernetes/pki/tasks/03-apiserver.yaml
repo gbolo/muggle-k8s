@@ -1,0 +1,115 @@
+---
+- name: Gather instance facts
+  setup:
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ groups['master'] }}"
+
+# certifcate used to terminate apiserver endpoint ------------------------------
+- name: Generate apiservers private keys
+  openssl_privatekey:
+    type: ECC
+    curve: "{{ k8s_apiserver.curve }}"
+    path: "{{ k8s_pki_dir }}/{{ item }}-apiserver.key"
+  loop: "{{ groups['master'] }}"
+
+- name: Generate apiserver csrs
+  openssl_csr:
+    path: "{{ k8s_pki_dir }}/{{ item }}-apiserver.csr"
+    privatekey_path: "{{ k8s_pki_dir }}/{{ item }}-apiserver.key"
+    common_name: "kube-apiserver"
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+    key_usage_critical: true
+    extended_key_usage:
+      - serverAuth
+      - clientAuth
+    extended_key_usage_critical: true
+    organization_name: "system:apiservers"
+    subject_alt_name:
+      # some default domains that coreDNS makes
+      - DNS:kubernetes
+      - DNS:kubernetes.default
+      - DNS:kubernetes.default.svc
+      - DNS:kubernetes.default.svc.cluster,
+      - DNS:kubernetes.default.svc.cluster.local
+      # load balanced connections should match this
+      - DNS:{{ k8s_master_lb_fqdn }}
+      # connections that use internal k8s service IP
+      - IP:{{ apiserver_k8s_service_ip }}
+      # connections directly to this specific node
+      - DNS:{{ item }}
+      - IP:127.0.0.1
+      - IP:{{ hostvars[item].ansible_default_ipv4.address }}
+  loop: "{{ groups['master'] }}"
+
+- name: Generate apiserver certificates
+  openssl_certificate:
+    path: "{{ k8s_pki_dir }}/{{ item }}-apiserver.crt"
+    csr_path: "{{ k8s_pki_dir }}/{{ item }}-apiserver.csr"
+    ownca_path: "{{ k8s_pki_dir }}/k8s-ca.crt"
+    ownca_privatekey_path: "{{ k8s_pki_dir }}/k8s-ca.key"
+    ownca_not_after: "{{ k8s_apiserver.expiration }}"
+    ownca_digest: "{{ k8s_apiserver.digest }}"
+    provider: ownca
+  loop: "{{ groups['master'] }}"
+
+
+# certifcate used to authenticate calls to worker kublets ----------------------
+- name: Generate apiserver kubelet client private key
+  openssl_privatekey:
+    path: "{{ k8s_pki_dir }}/apiserver-kubelet-client.key"
+
+- name: Generate api server kubelet client csr
+  openssl_csr:
+    path: "{{ k8s_pki_dir }}/apiserver-kubelet-client.csr"
+    privatekey_path: "{{ k8s_pki_dir }}/apiserver-kubelet-client.key"
+    common_name: apiserver-kubelet-client
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+    key_usage_critical: true
+    extended_key_usage: clientAuth
+    extended_key_usage_critical: true
+    organization_name: "system:masters"
+
+- name: Generate apiserver kubelet client certificate
+  openssl_certificate:
+    path: "{{ k8s_pki_dir }}/apiserver-kubelet-client.crt"
+    csr_path: "{{ k8s_pki_dir }}/apiserver-kubelet-client.csr"
+    ownca_path: "{{ k8s_pki_dir }}/k8s-ca.crt"
+    ownca_privatekey_path: "{{ k8s_pki_dir }}/k8s-ca.key"
+    ownca_not_after: "{{ k8s_apiserver.expiration }}"
+    ownca_digest: "{{ k8s_apiserver.digest }}"
+    provider: ownca
+
+# certifcate used to authenticate to etcd cluster ------------------------------
+- name: Generare kube apiserver etcd client private key
+  openssl_privatekey:
+    type: ECC
+    curve: "{{ k8s_apiserver.curve }}"
+    path: "{{ etcd_pki_dir }}/kube-apiserver-etcd-client.key"
+
+- name: Generare kube apiserver etcd client csrs
+  openssl_csr:
+    path: "{{ etcd_pki_dir }}/kube-apiserver-etcd-client.csr"
+    privatekey_path: "{{ etcd_pki_dir }}/kube-apiserver-etcd-client.key"
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+    key_usage_critical: true
+    extended_key_usage: clientAuth
+    extended_key_usage_critical: true
+    organization_name: "system:masters"
+    common_name: kube-apiserver-etcd-client
+
+- name: Generate kube apiserver etcd client certificate
+  openssl_certificate:
+    path: "{{ etcd_pki_dir }}/kube-apiserver-etcd-client.crt"
+    csr_path: "{{ etcd_pki_dir }}/kube-apiserver-etcd-client.csr"
+    ownca_path: "{{ etcd_pki_dir }}/etcd-server-ca.crt"
+    ownca_privatekey_path: "{{ etcd_pki_dir }}/etcd-server-ca.key"
+    ownca_not_after: "{{ k8s_apiserver.expiration }}"
+    ownca_digest: "{{ k8s_apiserver.digest }}"
+    provider: ownca
