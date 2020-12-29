@@ -66,3 +66,40 @@ artifacts/pki
     ├── admin.csr
     └── admin.key
 ```
+
+### Deploy the ETCD cluster
+Kubernetes requires an etcd cluster as a storage backend. To deploy one run the
+following playbook:
+
+```
+$ ansible-playbook -i env/gbolo1 playbooks_etcd/deploy.yml
+```
+
+When it successfully completes, ensure that it's operational:
+```
+# ssh to one of the etcd nodes
+$ ssh skdeploy@<etcd_node_in_your_inventory>
+
+# check that all members show up
+$ sudo /opt/etcd/etcdctl.sh -w table member list
++------------------+---------+--------------+---------------------------+---------------------------+------------+
+|        ID        | STATUS  |     NAME     |        PEER ADDRS         |       CLIENT ADDRS        | IS LEARNER |
++------------------+---------+--------------+---------------------------+---------------------------+------------+
+| 16f286079fdb2bc5 | started | <etcd1_name> | https://<etcd1_fqdn>:2380 | https://<etcd1_fqdn>:2379 |      false |
+| 4dfe47aab47228ab | started | <etcd2_name> | https://<etcd2_fqdn>:2380 | https://<etcd2_fqdn>:2379 |      false |
+| c4770f7ce1f71606 | started | <etcd3_name> | https://<etcd3_fqdn>:2380 | https://<etcd3_fqdn>:2379 |      false |
++------------------+---------+--------------+---------------------------+---------------------------+------------+
+
+# check that all endpoints are healthy
+$ sudo /opt/etcd/etcdctl.sh -w table endpoint health
++-------------------+--------+-------------+-------+
+|     ENDPOINT      | HEALTH |    TOOK     | ERROR |
++-------------------+--------+-------------+-------+
+| <etcd1_fqdn>:2379 |   true |  73.07161ms |       |
+| <etcd2_fqdn>:2379 |   true | 77.715403ms |       |
+| <etcd3_fqdn>:2379 |   true | 92.452173ms |       |
++-------------------+--------+-------------+-------+
+
+# check that we have a leader
+$ sudo /opt/etcd/etcdctl.sh -w table endpoint status
+```
