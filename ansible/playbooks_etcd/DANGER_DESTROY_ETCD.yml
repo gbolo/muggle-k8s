@@ -1,0 +1,17 @@
+---
+
+- hosts:
+    - etcd
+  become: true
+  gather_facts: no
+  any_errors_fatal: true
+
+  tasks:
+
+    - name: Confirm you want to DESTROY the etcd cluster
+      pause:
+        prompt: Please confirm you want to completely DESTROY the etcd cluster! Press <ENTER> to continue. Press <ctrl+c> and then <a> to abort
+
+    - name: destroy all etcd stuff
+      shell:
+        docker rm -f etcd && rm -rf "{{ etcd_home }}"
