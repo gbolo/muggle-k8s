@@ -1,0 +1,27 @@
+# wrapper for etcdctl to make life easier :)
+# some useful commands in case you forget...
+# etcdctl.sh member list
+# etcdctl.sh endpoint status
+# etcdctl.sh endpoint health
+
+DEFAULT_API_VERSION=3
+ETCDCTL_API=${ETCDCTL_API:-$DEFAULT_API_VERSION}
+
+if [[ "${ETCDCTL_API}" -eq 3 ]]; then
+  docker exec -e ETCDCTL_API=$ETCDCTL_API -i etcd etcdctl \
+    --cert /etc/tls/cert.pem \
+    --key /etc/tls/key.pem \
+    --cacert /etc/tls/client-ca.pem \
+    --endpoints={% for host in groups['etcd'] | sort() %}{{ host }}:{{ etcd_client_port | default('2379') }}{% if not loop.last %},{% endif %}{% endfor %} \
+    $@
+elif [[ "${ETCDCTL_API}" -eq 2 ]]; then
+  docker exec -e ETCDCTL_API=$ETCDCTL_API -i etcd etcdctl \
+    --cert-file /etc/tls/cert.pem \
+    --key-file /etc/tls/key.pem \
+    --ca-file /etc/tls/client-ca.pem \
+    --endpoints={% for host in groups['etcd'] | sort() %}{{ host }}:{{ etcd_client_port | default('2379') }}{% if not loop.last %},{% endif %}{% endfor %} \
+    $@
+else
+  echo "ETCDCTL_API must be either 2 or 3"
+  exit 1
+fi

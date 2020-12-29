@@ -1,0 +1,60 @@
+---
+- name: "deploy - create etcd user"
+  user:
+    name: "{{ etcd_user.name }}"
+    uid: "{{ etcd_user.id }}"
+    shell: /sbin/nologin
+    state: present
+
+- name: "deploy - ensure data directory is present"
+  file:
+    path: "{{ etcd_data_directory }}"
+    state: "directory"
+    owner: "{{ etcd_user.id }}"
+    group: "root"
+    mode: '0700'
+
+- name: deploy - add etcd internal IP addreses to hosts file
+  blockinfile:
+    path: /etc/hosts
+    marker: "# {mark} ANSIBLE MANAGED BLOCK FOR ETCD LAN IP(S)"
+    state: present
+    block: |
+      {% for host in groups['etcd'] %}
+      {{  hostvars[host].ansible_default_ipv4.address }} {{ host }}
+      {% endfor %}
+
+- name: deploy - push etcdctl wrapper script
+  template:
+    src: etcdctl.sh.j2
+    dest: "{{ etcd_home }}/etcdctl.sh"
+    mode: "750"
+  tags:
+    - etcdctl
+
+- name: "deploy - docker container"
+  docker_container:
+    name: etcd
+    hostname: "{{ inventory_hostname }}"
+    image: "{{ etcd_docker_image }}"
+    user: "{{ etcd_user.id }}:0"
+    published_ports:
+      - "2379:{{ etcd_client_port | default('2379') }}"
+      - "2380:{{ etcd_peer_port | default('2380') }}"
+    env: "{{ etcd_docker_env }}"
+    volumes:
+      - "/etc/hosts:/etc/hosts:ro"
+      - "{{ etcd_data_directory }}:/data:rw"
+      - "{{ etcd_tls_directory }}:/etc/tls:rw"
+    networks:
+      - name: etcd
+    network_mode: bridge
+    networks_cli_compatible: false
+    purge_networks: true
+    state: started
+    restart_policy: on-failure
+    restart_retries: 10
+    pull: "{{ force_pull | default(false) }}"
+    container_default_behavior: no_defaults
+  tags:
+    - deploy_etcd_docker

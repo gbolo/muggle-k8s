@@ -1,0 +1,10 @@
+---
+
+- hosts:
+    - etcd
+  become: true
+  any_errors_fatal: true
+  gather_facts: yes
+
+  roles:
+    - etcd

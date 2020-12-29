@@ -1,0 +1,9 @@
+---
+- name: create a docker network for etcd
+  become: true
+  docker_network:
+    name: etcd
+    ipam_options:
+      subnet: "10.180.10.0/24"
+      gateway: "10.180.10.1"
+      iprange: "10.180.10.0/24"

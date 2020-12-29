@@ -1,0 +1,48 @@
+- name: "etcd - ensure tls directory is present"
+  file:
+    path: "{{ etcd_tls_directory }}"
+    state: "directory"
+    owner: "{{ etcd_user.id }}"
+    group: "root"
+    mode: '0750'
+
+- name: "etcd - push peer tls cert and key"
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ etcd_user.id }}"
+    group: root
+    mode: '0440'
+  with_items:
+    - src: "{{ etcd_tls_peer_cert_file }}"
+      dest: "{{ etcd_tls_directory }}/peer-cert.pem"
+    - src: "{{ etcd_tls_peer_key_file }}"
+      dest: "{{ etcd_tls_directory }}/peer-key.pem"
+    - src: "{{ etcd_tls_peer_trusted_ca_file }}"
+      dest: "{{ etcd_tls_directory }}/peer-ca.pem"
+
+- name: "etcd - push tls cert and key"
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ etcd_user.id }}"
+    group: root
+    mode: '0440'
+  with_items:
+    - src: "{{ etcd_tls_cert_file }}"
+      dest: "{{ etcd_tls_directory }}/cert.pem"
+    - src: "{{ etcd_tls_key_file }}"
+      dest: "{{ etcd_tls_directory }}/key.pem"
+
+- name: "etcd - mutual tls - push tls client ca"
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ etcd_user.id }}"
+    group: root
+    mode: '0440'
+  with_items:
+    - src: "{{ etcd_tls_trusted_ca_file }}"
+      dest: "{{ etcd_tls_directory }}/client-ca.pem"
+  when:
+    - etcd_tls_client_auth

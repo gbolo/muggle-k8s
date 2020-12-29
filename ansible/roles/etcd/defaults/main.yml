@@ -1,0 +1,71 @@
+# deployment -------------------------------------------------------------------
+etcd_home: "/opt/etcd"
+etcd_data_directory: "{{ etcd_home }}/data"
+
+etcd_client_port: "2379"
+etcd_peer_port: "2380"
+
+etcd_user:
+  id: 30002
+  name: dkr-etcd
+
+etcd_docker_image: quay.io/coreos/etcd:v3.4.13
+
+etcd_initial_cluster_token: oe5lohh1quee9zoomaix7Goh
+
+etcd_docker_env:
+  ETCD_NAME: "{{ inventory_hostname }}"
+  ETCD_DATA_DIR: "/data"
+  ETCD_LOGGER: "zap"
+  ETCD_LOG_LEVEL: "debug"
+  ETCD_LOG_OUTPUTS: "stdout"
+
+  ## listen addresses (bind to all interfaces in docer container)
+  # used for peer-tp-peer etcd communication
+  ETCD_LISTEN_PEER_URLS: "https://0.0.0.0:2380"
+  # used for clients (application) to connect to
+  ETCD_LISTEN_CLIENT_URLS: "https://0.0.0.0:2379"
+
+  # etcd peer clustering (static)
+  ETCD_INITIAL_ADVERTISE_PEER_URLS: https://{{ inventory_hostname }}:{{ etcd_peer_port | default('2380') }}
+  ETCD_INITIAL_CLUSTER: "{% for host in groups['etcd'] | sort() %}{{ host }}=https://{{ host }}:{{ etcd_peer_port | default('2380') }}{% if not loop.last %},{% endif %}{% endfor %}"
+  ETCD_INITIAL_CLUSTER_STATE: new
+  ETCD_INITIAL_CLUSTER_TOKEN: "{{ etcd_initial_cluster_token }}"
+
+  # etcd endpoint that clients (application) talk to
+  ETCD_ADVERTISE_CLIENT_URLS:  https://{{ inventory_hostname }}:{{ etcd_client_port | default('2379') }}
+
+  ## TLS settings
+  # peer-to-peer TLS
+  ETCD_PEER_CLIENT_CERT_AUTH: "{{ etcd_tls_peer_client_auth | string }}"
+  ETCD_PEER_TRUSTED_CA_FILE: /etc/tls/peer-ca.pem
+  ETCD_PEER_CERT_FILE: /etc/tls/peer-cert.pem
+  ETCD_PEER_KEY_FILE: /etc/tls/peer-key.pem
+  # client-to-etcd TLS
+  ETCD_CLIENT_CERT_AUTH: "{{ etcd_tls_client_auth | string }}"
+  ETCD_TRUSTED_CA_FILE: /etc/tls/client-ca.pem
+  ETCD_CERT_FILE: /etc/tls/cert.pem
+  ETCD_KEY_FILE: /etc/tls/key.pem
+
+# TLS related ------------------------------------------------------------------
+# this is where we push the tls certs/keys on the server
+etcd_tls_directory: "{{ etcd_home }}/tls"
+
+# this is where we source our tls certs/keys on the ansible host
+etcd_tls_ansible_dir: "{{ inventory_dir }}/../../artifacts/pki/etcd"
+
+# TLS used that are client facing
+etcd_tls_cert_file: "{{ etcd_tls_ansible_dir }}/{{ inventory_hostname }}-server.crt"
+etcd_tls_key_file: "{{ etcd_tls_ansible_dir }}/{{ inventory_hostname }}-server.key"
+
+# TLS used that are for peer-to-peer clustering
+etcd_tls_peer_cert_file: "{{ etcd_tls_ansible_dir }}/{{ inventory_hostname }}-peer.crt"
+etcd_tls_peer_key_file: "{{ etcd_tls_ansible_dir }}/{{ inventory_hostname }}-peer.key"
+etcd_tls_peer_trusted_ca_file: "{{ etcd_tls_ansible_dir }}/etcd-peer-ca.crt"
+
+# mutual TLS for client facing traffic
+etcd_tls_client_auth: true
+etcd_tls_trusted_ca_file: "{{ etcd_tls_ansible_dir }}/etcd-server-ca.crt"
+
+# mutual TLS for peer-to-peer clustering
+etcd_tls_peer_client_auth: true
