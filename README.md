@@ -12,3 +12,13 @@ as well as to harden the system and tightly control network and ACLs.
 Finally, I would like to understand how each component works and behaves under
 various conditions. Only components that I care about will be supported in
 this deployment, so options for extended components/plugins will be limited.
+
+## Getting Started
+
+### Ansible Requirements
+**Ensure that you have the required python libraries installed before attempting
+to run the ansible playbooks in this repo.**
+To confirm your ansible system meets these requirements you can run:
+```
+ansible-playbook local_python_requirements.yaml
+```

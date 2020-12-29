@@ -1,0 +1,24 @@
+---
+- name: Check that we have all python dependencies installed on our local ansible system
+  hosts: localhost
+  connection: local
+
+  tasks:
+
+    - name: Ensure Python libraries are installed
+      community.general.python_requirements_info:
+        dependencies: "{{ item }}"
+      register: _py_facts
+      loop:
+        - ansible>=2.9.0
+        # for generating PKI
+        - cryptography>=1.3
+        - pyOpenSSL>=0.15
+        - netaddr
+        # for talking to a k8s cluster
+        - openshift>=0.6
+        - PyYAML>=3.11
+      failed_when: |
+        ( _py_facts.not_found is defined ) and ( _py_facts.not_found | length > 0 ) or
+        ( _py_facts.mismatched is defined ) and ( _py_facts.mismatched | length > 0) or
+        ( _py_facts.msg is defined) and ( _py_facts.msg | regex_search("Failed to parse"))
