@@ -1,0 +1,20 @@
+---
+
+- name: check if kubelet exists
+  stat:
+    path: "{{ bin_dir }}/kubelet"
+  register: kubelet_bin_stat
+
+- name: get version of kubelet we have
+  command: "{{ bin_dir }}/kubelet --version"
+  register: kubelet_bin_version_output
+  when: kubelet_bin_stat.stat.exists
+
+- name: download kubelet binary
+  get_url:
+    url: "{{ download_baseurl }}/kubelet"
+    dest: "{{ bin_dir }}/kubelet"
+    mode: 0775
+    force: true
+  when: not kubelet_bin_stat.stat.exists or
+        not k8s_version in kubelet_bin_version_output.stdout

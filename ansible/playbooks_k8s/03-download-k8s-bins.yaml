@@ -1,0 +1,6 @@
+---
+- name: Download ALL required k8s binaries
+  hosts: localhost
+  connection: local
+  roles:
+    - kubernetes/download-k8s-bins

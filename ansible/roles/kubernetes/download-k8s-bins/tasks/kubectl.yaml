@@ -1,0 +1,20 @@
+---
+
+- name: check if kubectl exists
+  stat:
+    path: "{{ bin_dir }}/kubectl"
+  register: kubectl_bin_stat
+
+- name: get version of kubectl we have
+  command: "{{ bin_dir }}/kubectl version --short --client"
+  register: kubectl_bin_version_output
+  when: kubectl_bin_stat.stat.exists
+
+- name: download kubectl binary
+  get_url:
+    url: "{{ download_baseurl }}/kubectl"
+    dest: "{{ bin_dir }}/kubectl"
+    mode: 0775
+    force: true
+  when: not kubectl_bin_stat.stat.exists or
+        not k8s_version in kubectl_bin_version_output.stdout

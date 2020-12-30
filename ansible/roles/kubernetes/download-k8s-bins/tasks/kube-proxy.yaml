@@ -1,0 +1,20 @@
+---
+
+- name: check if kube-proxy exists
+  stat:
+    path: "{{ bin_dir }}/kube-proxy"
+  register: proxy_bin_stat
+
+- name: get version of kube-proxy we have
+  command: "{{ bin_dir }}/kube-proxy --version"
+  register: proxy_bin_version_output
+  when: proxy_bin_stat.stat.exists
+
+- name: download kube-proxy binary
+  get_url:
+    url: "{{ download_baseurl }}/kube-proxy"
+    dest: "{{ bin_dir }}/kube-proxy"
+    mode: 0775
+    force: true
+  when: not proxy_bin_stat.stat.exists or
+        not k8s_version in proxy_bin_version_output.stdout

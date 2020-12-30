@@ -1,0 +1,20 @@
+---
+
+- name: check if kube-apiserver exists
+  stat:
+    path: "{{ bin_dir }}/kube-apiserver"
+  register: apiserver_bin_stat
+
+- name: get version of kube-apiserver we have
+  command: "{{ bin_dir }}/kube-apiserver --version"
+  register: apiserver_bin_version_output
+  when: apiserver_bin_stat.stat.exists
+
+- name: download kube-apiserver binary
+  get_url:
+    url: "{{ download_baseurl }}/kube-apiserver"
+    dest: "{{ bin_dir }}/kube-apiserver"
+    mode: 0775
+    force: true
+  when: not apiserver_bin_stat.stat.exists or
+        not k8s_version in apiserver_bin_version_output.stdout

@@ -1,0 +1,37 @@
+---
+- name: Create binary directory
+  file:
+    path: '{{ bin_dir }}'
+    state: directory
+  tags:
+    - always
+
+- name: kube-apiserver
+  include: kube-apiserver.yaml
+  tags:
+    - kube-apiserver
+
+- name: kube-controller-manager
+  include: kube-controller-manager.yaml
+  tags:
+    - kube-controller-manager
+
+- name: kube-scheduler
+  include: kube-scheduler.yaml
+  tags:
+    - kube-scheduler
+
+- name: kube-proxy
+  include: kube-proxy.yaml
+  tags:
+    - kube-proxy
+
+- name: kubelet
+  include: kubelet.yaml
+  tags:
+    - kubelet
+
+- name: kubectl
+  include: kubectl.yaml
+  tags:
+    - kubectl
