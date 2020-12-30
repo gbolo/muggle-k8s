@@ -103,3 +103,24 @@ $ sudo /opt/etcd/etcdctl.sh -w table endpoint health
 # check that we have a leader
 $ sudo /opt/etcd/etcdctl.sh -w table endpoint status
 ```
+
+### Generate the kubeconfig files
+We are going to need various kubeconfig files (some for systems and some for our
+local use). The role will generate these files dynamically based on your
+inventory. To generate these files run the following playbook:
+
+```
+$ ansible-playbook -i env/gbolo1 playbooks_k8s/02-generate-kubeconfigs.yaml
+```
+
+When it successfully completes, you should be able to see the artifacts:
+```
+$ tree artifacts/kubeconfig/
+artifacts/kubeconfig/
+├── admin.kubeconfig
+├── <wroker_node1_fqdn>.kubeconfig
+├── <wroker_node2_fqdn>.kubeconfig
+├── kube-controller-manager.kubeconfig
+├── kube-proxy.kubeconfig
+└── kube-scheduler.kubeconfig
+```
