@@ -124,3 +124,27 @@ artifacts/kubeconfig/
 ├── kube-proxy.kubeconfig
 └── kube-scheduler.kubeconfig
 ```
+
+### Download Kubernetes binaries
+Our kubernetes infrastructure will be deployed as binaries running on the system
+natively through the systemd init system. The role will download all k8s
+binaries for the specified `k8s_version` release. The role is smart enough to
+detect if you have already downloaded the correct version, so it is safe to run
+multiple times without having to worry about wasted bandwidth. To download these
+binaries run the following playbook:
+
+```
+$ ansible-playbook -i env/gbolo1 playbooks_k8s/03-download-k8s-bins.yaml
+```
+
+When it successfully completes, you should be able to see the artifacts:
+```
+$ tree artifacts/bin/
+artifacts/bin/
+├── kube-apiserver
+├── kube-controller-manager
+├── kube-proxy
+├── kube-scheduler
+├── kubectl
+└── kubelet
+```
