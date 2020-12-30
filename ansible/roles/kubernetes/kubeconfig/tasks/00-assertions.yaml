@@ -1,0 +1,10 @@
+---
+
+- name: "Ensure that mandatory variables are defined properly"
+  assert:
+    that:
+      # we need this var to make the PKI properly.
+      # We shouldn't have a default value for it.
+      - k8s_master_lb_fqdn is defined and k8s_master_lb_fqdn | length > 3
+      # we should have some unique name for the k8s cluster
+      - cluster_name is defined and cluster_name | length > 3

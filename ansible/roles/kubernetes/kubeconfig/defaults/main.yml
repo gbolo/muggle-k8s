@@ -1,0 +1,8 @@
+artifacts_dir: "{{ playbook_dir }}/../artifacts"
+# default location to place kube configs
+kubeconfig_dir: "{{ artifacts_dir }}/kubeconfig"
+# default location to place pki
+pki_dir: "{{ artifacts_dir }}/pki"
+etcd_pki_dir: "{{ pki_dir }}/etcd"
+k8s_pki_dir: "{{ pki_dir }}/k8s"
+user_accounts_pki_dir: "{{ pki_dir }}/users"
