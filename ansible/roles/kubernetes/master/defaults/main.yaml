@@ -1,0 +1,52 @@
+---
+# ensures that k8s encrypts data before storing it in the etcd cluster
+# https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data/
+# this value should be 256 bits (32 bytes) in length (32 chars should be equivalent)
+# NOTE: this value gets checked as an assertion
+# encryption_key: some-random-32-characters
+
+#
+# reference: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
+#
+
+# A CIDR notation IP range from which to assign service cluster IPs. This must not overlap with any IP ranges assigned to nodes or pods.
+k8s_service_cluster_ip_range: 10.43.0.0/16
+# A port range to reserve for services with NodePort visibility. Example: '30000-32767'. Inclusive at both ends of the range.
+k8s_service_node_port_range: "30000-32767"
+# CIDR notation IP range for Pods in the cluster. Requires --allocate-node-cidrs to be true
+k8s_pod_network_cidr: 10.42.0.0/16
+
+# A set of key=value pairs that enable or disable built-in APIs. Supported options are:
+# v1=true|false for the core API group
+# <group>/<version>=true|false for a specific API group and version (e.g. apps/v1=true)
+# api/all=true|false controls all API versions
+# api/ga=true|false controls all API versions of the form v[0-9]+
+# api/beta=true|false controls all API versions of the form v[0-9]+beta[0-9]+
+# api/alpha=true|false controls all API versions of the form v[0-9]+alpha[0-9]+
+# api/legacy is deprecated, and will be removed in a future version
+k8s_runtime_config : "api/all=true"
+
+# admission plugins that should be enabled in addition to default enabled ones
+k8s_apiserver_enable_admission_plugins:
+    - NamespaceLifecycle
+    - NodeRestriction
+    - LimitRanger
+    - ServiceAccount
+    - DefaultStorageClass
+    - ResourceQuota
+    # - PodSecurityPolicy
+    - PodPreset
+
+# an endpoint reconciler (master-count, lease, none)
+k8s_apiserver_endpoint_reconciler_type: lease
+
+# The number of apiservers running in the cluster, must be a positive number.
+# (In use when --endpoint-reconciler-type=master-count is enabled.)
+k8s_apiserver_count: "{{ groups['master'] | length }}"
+
+#
+# reference: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-controller-manager/
+#
+
+# Mask size for node cidr in cluster. Default is 24 for IPv4 and 64 for IPv6.
+k8s_node_cidr_mask_size_for_pod_network: 24

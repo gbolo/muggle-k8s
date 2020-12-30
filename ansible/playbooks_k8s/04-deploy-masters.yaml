@@ -1,0 +1,6 @@
+---
+- name: Deploy k8s masters
+  hosts: master
+  become: yes
+  roles:
+    - kubernetes/master

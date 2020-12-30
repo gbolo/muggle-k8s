@@ -1,0 +1,11 @@
+- name: Copy k8s binaries
+  copy:
+    src: "{{ item }}"
+    dest: /usr/local/bin/
+    owner: root
+    group: root
+    mode: 0755
+  loop:
+    - "{{ bin_dir }}/kube-apiserver"
+    - "{{ bin_dir }}/kube-controller-manager"
+    - "{{ bin_dir }}/kube-scheduler"

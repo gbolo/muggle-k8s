@@ -1,0 +1,20 @@
+---
+- name: Assertions
+  include: 00-assertions.yaml
+  tags:
+    - always
+
+- name: Install Binaries
+  include: install.yaml
+  tags:
+    - install
+
+- name: Push Configuration
+  include: configure.yaml
+  tags:
+    - configure
+
+- name: Enable Services
+  include: service.yaml
+  tags:
+    - service

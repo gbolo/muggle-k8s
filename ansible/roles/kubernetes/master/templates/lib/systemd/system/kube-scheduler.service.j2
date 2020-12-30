@@ -1,0 +1,15 @@
+# {{ ansible_managed }}
+
+[Unit]
+Description=Kubernetes Scheduler
+Documentation=https://kubernetes.io/docs
+
+[Service]
+ExecStart=/usr/local/bin/kube-scheduler \
+  --config=/etc/kubernetes/kube-scheduler-config.yaml \
+  --v=2
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
