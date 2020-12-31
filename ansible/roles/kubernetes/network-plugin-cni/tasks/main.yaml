@@ -1,0 +1,15 @@
+- name: CNI | make sure /opt/cni/bin exists
+  become: true
+  file:
+    path: /opt/cni/bin
+    state: directory
+    mode: 0755
+    recurse: true
+
+- name: CNI | Copy cni plugins
+  become: true
+  unarchive:
+    src: "{{ cni_plugins_archive_url }}"
+    dest: "/opt/cni/bin"
+    mode: 0755
+    remote_src: true
