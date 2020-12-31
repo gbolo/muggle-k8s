@@ -37,7 +37,7 @@
       # load balanced connections should match this
       - DNS:{{ k8s_master_lb_fqdn }}
       # connections that use internal k8s service IP
-      - IP:{{ apiserver_k8s_service_ip }}
+      - IP:{{ k8s_apiserver_cluster_ip }}
       # connections directly to this specific node
       - DNS:{{ item }}
       - IP:127.0.0.1

@@ -20,10 +20,10 @@
         - cluster:
             certificate-authority-data: {{ lookup('file', '{{ k8s_pki_dir }}/k8s-ca.crt') | b64encode }}
             server: https://127.0.0.1:6443
-          name: {{ cluster_name }}
+          name: {{ k8s_cluster_name }}
       contexts:
         - context:
-            cluster: {{ cluster_name }}
+            cluster: {{ k8s_cluster_name }}
             user: default-controller-manager
           name: default
       current-context: default
@@ -46,10 +46,10 @@
         - cluster:
             certificate-authority-data: {{ lookup('file', '{{ k8s_pki_dir }}/k8s-ca.crt') | b64encode }}
             server: https://127.0.0.1:6443
-          name: {{ cluster_name }}
+          name: {{ k8s_cluster_name }}
       contexts:
         - context:
-            cluster: {{ cluster_name }}
+            cluster: {{ k8s_cluster_name }}
             user: default-manager
           name: default
       current-context: default
@@ -72,10 +72,10 @@
         - cluster:
             certificate-authority-data: {{ lookup('file', '{{ k8s_pki_dir }}/k8s-ca.crt') | b64encode }}
             server: https://{{ k8s_master_lb_fqdn }}:{{ k8s_master_lb_port | default('6443') }}
-          name: {{ cluster_name }}
+          name: {{ k8s_cluster_name }}
       contexts:
         - context:
-            cluster: {{ cluster_name }}
+            cluster: {{ k8s_cluster_name }}
             user: default-admin
           name: default
       current-context: default
@@ -98,10 +98,10 @@
         - cluster:
             certificate-authority-data: {{ lookup('file', '{{ k8s_pki_dir }}/k8s-ca.crt') | b64encode }}
             server: https://{{ k8s_master_lb_fqdn }}:{{ k8s_master_lb_port | default('6443') }}
-          name: {{ cluster_name }}
+          name: {{ k8s_cluster_name }}
       contexts:
         - context:
-            cluster: {{ cluster_name }}
+            cluster: {{ k8s_cluster_name }}
             user: system:node:{{ item }}
           name: default
       current-context: default
@@ -126,10 +126,10 @@
         - cluster:
             certificate-authority-data: {{ lookup('file', '{{ k8s_pki_dir }}/k8s-ca.crt') | b64encode }}
             server: https://{{ k8s_master_lb_fqdn }}:{{ k8s_master_lb_port | default('6443') }}
-          name: {{ cluster_name }}
+          name: {{ k8s_cluster_name }}
       contexts:
       - context:
-          cluster: {{ cluster_name }}
+          cluster: {{ k8s_cluster_name }}
           user: kube-proxy
         name: default
       current-context: default
