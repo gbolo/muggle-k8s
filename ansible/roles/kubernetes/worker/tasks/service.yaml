@@ -1,0 +1,8 @@
+- name: ensure services are enabled and running on worker node
+  systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  loop:
+    - kubelet
+    - kube-proxy

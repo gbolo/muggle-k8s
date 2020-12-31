@@ -1,0 +1,29 @@
+# {{ ansible_managed }}
+# reference: https://github.com/kubernetes/kubernetes/blob/master/staging/src/k8s.io/kube-proxy/config/v1alpha1/types.go
+
+apiVersion: kubeproxy.config.k8s.io/v1alpha1
+kind: KubeProxyConfiguration
+
+clientConnection:
+  kubeconfig: "/etc/kubernetes/kube-proxy/kube-proxy.kubeconfig"
+
+# the proxy mode. explore ipvs one day...
+mode: "iptables"
+
+# nodePortAddresses is the --nodeport-addresses value for kube-proxy process. Values must be valid
+# IP blocks. These values are as a parameter to select the interfaces where nodeport works.
+# In case someone would like to expose a service on localhost for local visit and some other interfaces for
+# particular purpose, a list of IP blocks would do that.
+# If set it to "127.0.0.0/8", kube-proxy will only select the loopback interface for NodePort.
+# If set it to a non-zero IP block, kube-proxy will filter that down to just the IPs that applied to the node.
+# An empty string slice is meant to select all network interfaces.
+nodePortAddresses:
+{% for address in k8s_kublet_node_port_dddresses %}
+  - {{ address }}
+{% endfor %}
+
+# clusterCIDR is the CIDR range of the pods in the cluster. It is used to
+# bridge traffic coming from outside of the cluster. If not provided,
+# no off-cluster bridging will be performed.
+# NOTE: this should be the same as defined on master node
+clusterCIDR: "{{ k8s_pod_network_cidr }}"

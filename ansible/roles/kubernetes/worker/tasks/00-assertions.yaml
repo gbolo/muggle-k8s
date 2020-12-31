@@ -1,0 +1,8 @@
+---
+- name: "Ensure that mandatory variables are defined properly"
+  assert:
+    that:
+      # make sure k8s_pod_network_cidr is a valid subnet
+      - k8s_pod_network_cidr is defined and k8s_pod_network_cidr | ansible.netcommon.ipaddr('net')
+      # make sure that a cluster domain is properly set
+      - k8s_cluster_domain is defined and k8s_cluster_domain | length >= 3

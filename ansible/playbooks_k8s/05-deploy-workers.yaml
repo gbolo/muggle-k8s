@@ -1,0 +1,6 @@
+---
+- name: Deploy k8s worker nodes
+  hosts: worker
+  become: yes
+  roles:
+    - kubernetes/worker

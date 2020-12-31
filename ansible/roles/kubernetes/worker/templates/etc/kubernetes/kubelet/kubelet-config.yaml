@@ -1,0 +1,31 @@
+# {{ ansible_managed }}
+# reference: https://github.com/kubernetes/kubernetes/blob/master/staging/src/k8s.io/kubelet/config/v1beta1/types.go
+
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+
+# https://github.com/kubernetes/kubernetes/issues/56850
+cgroupDriver: cgroupfs
+kubeletCgroups: /systemd/system.slice
+
+authentication:
+  anonymous:
+    enabled: false
+  webhook:
+    enabled: true
+  x509:
+    clientCAFile: "/etc/kubernetes/k8s-ca.crt"
+authorization:
+  mode: Webhook
+
+clusterDomain: "{{ k8s_cluster_domain }}"
+clusterDNS:
+  - "{{ k8s_cluster_dns_ip }}"
+
+# podCIDR is only used in standalone mode
+# podCIDR: "{{ k8s_pod_network_cidr }}"
+
+resolvConf: "/etc/resolv.conf"
+runtimeRequestTimeout: "15m"
+tlsCertFile: "/etc/kubernetes/kubelet/{{ inventory_hostname }}-kublet.crt"
+tlsPrivateKeyFile: "/etc/kubernetes/kubelet/{{ inventory_hostname }}-kublet.key"
