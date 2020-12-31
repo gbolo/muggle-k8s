@@ -213,3 +213,20 @@ $ ./artifacts/bin/kubectl --kubeconfig artifacts/kubeconfig/admin.kubeconfig des
 runtime network not ready: NetworkReady=false reason:NetworkPluginNotReady message:docker: network plugin is not ready: cni config uninitialized
 ...
 ```
+
+## Deploy the Kubernetes cluster network
+There are [many options](https://kubernetes.io/docs/concepts/cluster-administration/networking/)
+for cluster networking available in Kubernetes. I have selected to use the
+[CNI](https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/network-plugins/)
+network plugin with a third-party provider [weave net](https://www.weave.works/oss/net/).
+
+Weave net is being deployed as a CNI plugin. It provides many advanced features,
+including support for [Network Policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/).
+
+### Deploy the Network Plugin CNI Requirements
+First we install some CNI requirements so that our plugin can work properly.
+Basically it just makes a bunch of binaries available to the CNI plugin:
+
+```
+$ ansible-playbook -i env/gbolo1/ playbooks_k8s/06-prepare-network-plugin-cni.yaml
+```
