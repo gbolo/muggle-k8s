@@ -148,3 +148,37 @@ artifacts/bin/
 ├── kubectl
 └── kubelet
 ```
+
+## Deploy the Kubernetes masters
+The control plane nodes (masters) are the essential piece to our kubernetes
+infrastructure. They provide the main API which all components talk to (via
+`kube-apiserver`). Our role will configure and deploy the following master
+components to the servers in the group `master`.:
+
+- `kube-apiserver` The Kubernetes API REST service, which handles requests and
+data for all Kubernetes objects and provide shared state for all the other
+Kubernetes components.
+- `kube-controller-manager` Monitors the cluster desired state through the
+Kubernetes API server and makes the necessary changes to the current state to
+reach the desired state.
+- `kube-scheduler` Responsible for scheduling cluster workloads based on various
+configurations, metrics, resource requirements and workload-specific requirements.
+
+To deploy the masters, run the following playbook:
+```
+$ ansible-playbook -i env/gbolo1/ playbooks_k8s/04-deploy-masters.yaml
+```
+
+When it successfully completes, you should be able to use `kubectl` to interact
+with your newly deployed kubernetes control plane:
+```
+# you may use your own kubectl binary if your not on linux
+$ ./artifacts/bin/kubectl --kubeconfig artifacts/kubeconfig/admin.kubeconfig get componentstatuses
+Warning: v1 ComponentStatus is deprecated in v1.19+
+NAME                 STATUS    MESSAGE             ERROR
+controller-manager   Healthy   ok                  
+scheduler            Healthy   ok                  
+etcd-1               Healthy   {"health":"true"}   
+etcd-0               Healthy   {"health":"true"}   
+etcd-2               Healthy   {"health":"true"}
+```
