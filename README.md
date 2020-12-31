@@ -230,3 +230,27 @@ Basically it just makes a bunch of binaries available to the CNI plugin:
 ```
 $ ansible-playbook -i env/gbolo1/ playbooks_k8s/06-prepare-network-plugin-cni.yaml
 ```
+
+### Deploy CNI plugin Weave Net
+We can now proceed to deploying weave-net as a CNI plugin. This is as simple as
+applying a resource to the Kubernetes API. Run the following playbook to do just
+that:
+```
+$ ansible-playbook -i env/gbolo1/ playbooks_k8s/07-deploy-cni-plugin-weave-net.yaml
+```
+
+When it successfully completes, you should be able to use `kubectl` to verify
+that the nodes are not marked as Ready:
+
+```
+$ ./artifacts/bin/kubectl --kubeconfig artifacts/kubeconfig/admin.kubeconfig get nodes
+NAME                        STATUS     ROLES    AGE   VERSION
+<worker_node_1>             Ready      <none>   10h   v1.19.6
+<worker_node_2>             Ready      <none>   10h   v1.19.6
+
+# you can also verify if the weave-net pods are running if your nodes are not ready
+./artifacts/bin/kubectl --kubeconfig artifacts/kubeconfig/admin.kubeconfig get pods -n kube-system -l name=weave-net
+NAME              READY   STATUS    RESTARTS   AGE
+weave-net-c7h59   2/2     Running   0          5m
+weave-net-l9mbb   2/2     Running   0          5m
+```
