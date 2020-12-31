@@ -2,6 +2,8 @@
 - name: "Ensure that mandatory variables are defined properly"
   assert:
     that:
+      # make sure k8s_pod_network_cidr is a valid subnet
+      - k8s_pod_network_cidr is defined and k8s_pod_network_cidr | ansible.netcommon.ipaddr('net')
       # The encryption key should be explicitly set by the user
       - encryption_key is defined and encryption_key | length >= 32
       # make sure that a cluster name is set
