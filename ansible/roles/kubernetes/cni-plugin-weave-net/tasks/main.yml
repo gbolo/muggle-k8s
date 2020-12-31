@@ -1,0 +1,6 @@
+---
+- name: Deploy weave net CNI plugin
+  k8s:
+    definition: "{{ lookup('template', 'weave-net.yml.j2') }}"
+    kubeconfig: "{{ kubeconfig_dir }}/admin.kubeconfig"
+    apply: true

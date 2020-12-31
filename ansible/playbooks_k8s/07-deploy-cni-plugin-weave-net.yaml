@@ -1,0 +1,6 @@
+---
+- name: Deploy weave-net CNI plugin
+  hosts: localhost
+  connection: local
+  roles:
+    - kubernetes/cni-plugin-weave-net
