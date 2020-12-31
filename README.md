@@ -182,3 +182,34 @@ etcd-1               Healthy   {"health":"true"}
 etcd-0               Healthy   {"health":"true"}   
 etcd-2               Healthy   {"health":"true"}
 ```
+
+## Deploy the Kubernetes worker nodes
+The worker nodes are responsible for running all the work loads.
+Our role will configure and deploy the following worker
+components to the servers in the group `worker`.:
+
+- `kubelet` Acts as the "agent node". Watches the Kubernetes API (master nodes)
+for any changes to apply.
+- `kube-proxy` Responsible for getting traffic to the correct pods.
+Does things like load balancing, SNAT, manage iptables, exc.
+
+To deploy the worker nodes, run the following playbook:
+```
+$ ansible-playbook -i env/gbolo1/ playbooks_k8s/05-deploy-workers.yaml
+```
+
+When it successfully completes, you should be able to use `kubectl` to verify
+that the nodes have been admitted to the cluster:
+```
+# NOTE: the nodes won't be ready yet because we have not yet setup the network plugin cni
+$ ./artifacts/bin/kubectl --kubeconfig artifacts/kubeconfig/admin.kubeconfig get nodes
+NAME                        STATUS     ROLES    AGE   VERSION
+<worker_node_1>             NotReady   <none>   11s   v1.19.6
+<worker_node_2>             NotReady   <none>   11s   v1.19.6
+
+# describe the nodes to see that they are not ready because of the cni plugin
+$ ./artifacts/bin/kubectl --kubeconfig artifacts/kubeconfig/admin.kubeconfig describe nodes
+...
+runtime network not ready: NetworkReady=false reason:NetworkPluginNotReady message:docker: network plugin is not ready: cni config uninitialized
+...
+```
