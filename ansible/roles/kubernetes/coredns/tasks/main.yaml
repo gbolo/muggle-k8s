@@ -1,0 +1,19 @@
+---
+# - name: Create coredns psp
+#   k8s:
+#     definition: "{{ lookup('template', 'coredns-psp.yaml') }}"
+#     kubeconfig: "{{ kubeconfig_dir }}/admin.kubeconfig"
+#     apply: true
+
+- name: Deploy coredns
+  k8s:
+    definition: "{{ lookup('template', item) }}"
+    kubeconfig: "{{ kubeconfig_dir }}/admin.kubeconfig"
+    apply: true
+  loop:
+    - coredns_psp.yaml.j2
+    - corends_serviceaccount.yaml.j2
+    - coredns_clusterrole.yaml.j2
+    - coredns_configmap.yaml.j2
+    - coredns_deployment.yaml.j2
+    - coredns_service.yaml.j2

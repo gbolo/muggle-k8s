@@ -1,0 +1,6 @@
+
+coredns_version: 1.7.0
+coredns_image: coredns/coredns:{{ coredns_version }}
+
+# Domain for this cluster. If set, kubelet will configure all containers to search this domain in addition to the host's search domains
+k8s_cluster_domain: cluster.local

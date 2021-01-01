@@ -33,7 +33,9 @@
       - DNS:kubernetes.default
       - DNS:kubernetes.default.svc
       - DNS:kubernetes.default.svc.cluster,
-      - DNS:kubernetes.default.svc.cluster.local
+      # - DNS:kubernetes.default.svc.cluster.local
+      # TODO: maybe clean up the defaults on top
+      - DNS:kubernetes.default.svc.{{ k8s_cluster_domain }}
       # load balanced connections should match this
       - DNS:{{ k8s_master_lb_fqdn }}
       # connections that use internal k8s service IP
