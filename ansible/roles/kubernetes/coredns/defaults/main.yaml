@@ -4,3 +4,12 @@ coredns_image: coredns/coredns:{{ coredns_version }}
 
 # Domain for this cluster. If set, kubelet will configure all containers to search this domain in addition to the host's search domains
 k8s_cluster_domain: cluster.local
+
+# if set to true, a DNS horizontal autoscaler will be depolyed along with coredns
+# to help scale coredns to dynamically accoodate the cluster size
+coredns_autoscaler_enabled: true
+
+# determins the version of https://github.com/kubernetes-sigs/cluster-proportional-autoscaler
+# to use for the autoscaler image
+coredns_autoscaler_version: 1.8.3
+coredns_autoscaler_image: k8s.gcr.io/cpa/cluster-proportional-autoscaler-amd64:{{ coredns_autoscaler_version }}

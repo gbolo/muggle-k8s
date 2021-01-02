@@ -1,10 +1,4 @@
 ---
-# - name: Create coredns psp
-#   k8s:
-#     definition: "{{ lookup('template', 'coredns-psp.yaml') }}"
-#     kubeconfig: "{{ kubeconfig_dir }}/admin.kubeconfig"
-#     apply: true
-
 - name: Deploy coredns
   k8s:
     definition: "{{ lookup('template', item) }}"
@@ -17,3 +11,13 @@
     - coredns_configmap.yaml.j2
     - coredns_deployment.yaml.j2
     - coredns_service.yaml.j2
+
+- name: Deploy an autoscaler for coredns
+  k8s:
+    definition: "{{ lookup('template', item) }}"
+    kubeconfig: "{{ kubeconfig_dir }}/admin.kubeconfig"
+    apply: true
+  loop:
+    - coredns_autoscaler.yaml.j2
+  when:
+    - coredns_autoscaler_enabled
