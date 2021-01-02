@@ -3,7 +3,8 @@
   setup:
   delegate_to: "{{ item }}"
   delegate_facts: true
-  loop: "{{ groups['master'] }}"
+  loop: "{{ groups.master }}"
+  connection: ssh
 
 # certifcate used to terminate apiserver endpoint ------------------------------
 - name: Generate apiservers private keys
@@ -11,7 +12,7 @@
     type: ECC
     curve: "{{ k8s_apiserver.curve }}"
     path: "{{ k8s_pki_dir }}/{{ item }}-apiserver.key"
-  loop: "{{ groups['master'] }}"
+  loop: "{{ groups.master }}"
 
 - name: Generate apiserver csrs
   openssl_csr:
@@ -32,8 +33,7 @@
       - DNS:kubernetes
       - DNS:kubernetes.default
       - DNS:kubernetes.default.svc
-      - DNS:kubernetes.default.svc.cluster,
-      # - DNS:kubernetes.default.svc.cluster.local
+      - DNS:kubernetes.default.svc.cluster
       # TODO: maybe clean up the defaults on top
       - DNS:kubernetes.default.svc.{{ k8s_cluster_domain }}
       # load balanced connections should match this
@@ -44,7 +44,7 @@
       - DNS:{{ item }}
       - IP:127.0.0.1
       - IP:{{ hostvars[item].ansible_default_ipv4.address }}
-  loop: "{{ groups['master'] }}"
+  loop: "{{ groups.master }}"
 
 - name: Generate apiserver certificates
   openssl_certificate:
@@ -55,7 +55,7 @@
     ownca_not_after: "{{ k8s_apiserver.expiration }}"
     ownca_digest: "{{ k8s_apiserver.digest }}"
     provider: ownca
-  loop: "{{ groups['master'] }}"
+  loop: "{{ groups.master }}"
 
 
 # certifcate used to authenticate calls to worker kublets ----------------------

@@ -5,6 +5,9 @@ etcd_pki_dir: "{{ pki_dir }}/etcd"
 k8s_pki_dir: "{{ pki_dir }}/k8s"
 user_accounts_pki_dir: "{{ pki_dir }}/users"
 
+# Domain for this cluster. If set, kubelet will configure all containers to search this domain in addition to the host's search domains
+k8s_cluster_domain: cluster.local
+
 # etcd root CA details (both peer and client)
 etcd_root_ca:
   curve: secp521r1

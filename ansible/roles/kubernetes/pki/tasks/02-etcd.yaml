@@ -3,14 +3,15 @@
   setup:
   delegate_to: "{{ item }}"
   delegate_facts: true
-  loop: "{{ groups['etcd'] }}"
+  loop: "{{ groups.etcd }}"
+  connection: ssh
 
 - name: Generate etcd servers private keys
   openssl_privatekey:
     type: ECC
     curve: "{{ etcd_peer.curve }}"
     path: "{{ etcd_pki_dir }}/{{ item }}-server.key"
-  loop: "{{ groups['etcd'] }}"
+  loop: "{{ groups.etcd }}"
 
 - name: Generate etcd servers csrs
   openssl_csr:
@@ -30,7 +31,7 @@
       - DNS:{{ item }}
       - IP:127.0.0.1
       - IP:{{ hostvars[item].ansible_default_ipv4.address }}
-  loop: "{{ groups['etcd'] }}"
+  loop: "{{ groups.etcd }}"
 
 - name: Generate etcd servers certificates
   openssl_certificate:
@@ -41,14 +42,14 @@
     provider: ownca
     ownca_not_after: "{{ etcd_peer.expiration }}"
     ownca_digest: "{{ etcd_peer.digest }}"
-  loop: "{{ groups['etcd'] }}"
+  loop: "{{ groups.etcd }}"
 
 - name: Generate etcd peers private keys
   openssl_privatekey:
     type: ECC
     curve: "{{ etcd_peer.curve }}"
     path: "{{ etcd_pki_dir }}/{{ item }}-peer.key"
-  loop: "{{ groups['etcd'] }}"
+  loop: "{{ groups.etcd }}"
 
 - name: Generate etcd peers csrs
   openssl_csr:
@@ -68,7 +69,7 @@
       - DNS:{{ item }}
       - IP:127.0.0.1
       - IP:{{ hostvars[item].ansible_default_ipv4.address }}
-  loop: "{{ groups['etcd'] }}"
+  loop: "{{ groups.etcd }}"
 
 - name: Generate etcd peers certificate
   openssl_certificate:
@@ -79,4 +80,4 @@
     provider: ownca
     ownca_not_after: "{{ etcd_peer.expiration }}"
     ownca_digest: "{{ etcd_peer.digest }}"
-  loop: "{{ groups['etcd'] }}"
+  loop: "{{ groups.etcd }}"

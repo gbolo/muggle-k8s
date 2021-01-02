@@ -3,7 +3,8 @@
   setup:
   delegate_to: "{{ item }}"
   delegate_facts: true
-  loop: "{{ groups['worker'] }}"
+  loop: "{{ groups.worker }}"
+  connection: ssh
 
 # server cert for kublet api endpoint ------------------------------------------
 - name: Generate kubelet servers private keys
@@ -11,7 +12,7 @@
     type: ECC
     curve: "{{ k8s_kublet.curve }}"
     path: '{{ k8s_pki_dir }}/{{ item }}-kublet.key'
-  loop: "{{ groups['worker'] }}"
+  loop: "{{ groups.worker }}"
 
 - name: Generate kubelet servers csrs
   openssl_csr:
@@ -31,7 +32,7 @@
       - DNS:{{ item }}
       - IP:127.0.0.1
       - IP:{{ hostvars[item].ansible_default_ipv4.address }}
-  loop: "{{ groups['worker'] }}"
+  loop: "{{ groups.worker }}"
 
 - name: Generate kubelet servers certificates
   openssl_certificate:
@@ -42,7 +43,7 @@
     ownca_not_after: "{{ k8s_kublet.expiration }}"
     ownca_digest: "{{ k8s_kublet.digest }}"
     provider: ownca
-  loop: "{{ groups['worker'] }}"
+  loop: "{{ groups.worker }}"
 
 
 # client cert for kublet uses for auth to apiserver ----------------------------
@@ -51,7 +52,7 @@
     type: ECC
     curve: "{{ k8s_kublet.curve }}"
     path: '{{ k8s_pki_dir }}/{{ item }}-kublet-client.key'
-  loop: "{{ groups['worker'] }}"
+  loop: "{{ groups.worker }}"
 
 - name: Generate kubelet clients csrs
   openssl_csr:
@@ -65,7 +66,7 @@
     extended_key_usage: clientAuth
     extended_key_usage_critical: true
     organization_name: 'system:nodes'
-  loop: "{{ groups['worker'] }}"
+  loop: "{{ groups.worker }}"
 
 - name: Generate kubelet clients certificates
   openssl_certificate:
@@ -76,4 +77,4 @@
     ownca_not_after: "{{ k8s_kublet.expiration }}"
     ownca_digest: "{{ k8s_kublet.digest }}"
     provider: ownca
-  loop: "{{ groups['worker'] }}"
+  loop: "{{ groups.worker }}"
