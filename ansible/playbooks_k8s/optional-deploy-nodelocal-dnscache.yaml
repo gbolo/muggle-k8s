@@ -1,0 +1,6 @@
+---
+- name: Deploy NodeLocal DNSCache
+  hosts: localhost
+  connection: local
+  roles:
+    - kubernetes/nodelocal-dnscache

@@ -1,0 +1,8 @@
+---
+- name: Deploy NodeLocal DNSCache
+  k8s:
+    definition: "{{ lookup('template', item) }}"
+    kubeconfig: "{{ kubeconfig_dir }}/admin.kubeconfig"
+    apply: true
+  loop:
+    - nodelocaldnscache.yaml.j2

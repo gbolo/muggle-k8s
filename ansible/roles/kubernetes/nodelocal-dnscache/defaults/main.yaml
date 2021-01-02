@@ -1,0 +1,11 @@
+# reference: https://kubernetes.io/docs/tasks/administer-cluster/nodelocaldns/
+
+# The local listen IP address for NodeLocal DNSCache can be any IP in the 169.254.20.0/16 space or any other IP address that can be guaranteed to not collide with any existing IP.
+nodelocal_dnscache_local_address: 169.254.20.10
+
+# the IP address used for containers DNS server
+# should be in the range of k8s_service_cluster_ip_range
+k8s_cluster_dns_ip: 10.43.0.10
+
+# Domain for this cluster. If set, kubelet will configure all containers to search this domain in addition to the host's search domains
+k8s_cluster_domain: cluster.local
