@@ -1,0 +1,10 @@
+
+ingress_nginx_version: 0.43.0
+ingress_nginx_namespace: ingress-nginx
+ingress_nginx_nodeport_http: 30080
+ingress_nginx_nodeport_https: 30443
+
+# configuration for master nodes to reach webhook nodeport service
+# when the master nodes do not have access to pod network
+# ingress_nginx_admission_fqdn: nginx-admission.priv.gbolo1.vme.dev
+# ingress_nginx_admission_port: 31443

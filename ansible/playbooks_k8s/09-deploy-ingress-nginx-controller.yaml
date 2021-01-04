@@ -1,0 +1,6 @@
+---
+- name: Deploy ingress-nginx controller
+  hosts: localhost
+  connection: local
+  roles:
+    - kubernetes/ingress-nginx-controller
