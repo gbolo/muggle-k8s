@@ -1,0 +1,15 @@
+# TODO - this will be used later hopefully
+
+- name: Create kubernetes group
+  group:
+    name: kubernetes
+    system: true
+    state: present
+
+- name: Create kube-controller-manager user
+  user:
+    name: kube-controller-manager
+    system: true
+    group: kubernetes
+    create_home: false
+    state: present

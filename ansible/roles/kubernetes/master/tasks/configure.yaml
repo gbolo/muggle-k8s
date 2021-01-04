@@ -1,0 +1,72 @@
+- name: master | gather instance facts
+  setup:
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  loop: "{{ groups['etcd'] | union(groups['worker']) | union(groups['master']) | unique }}"
+
+- name: master | add entries to /etc/hosts
+  blockinfile:
+    path: /etc/hosts
+    marker: "# {mark} ANSIBLE MANAGED BLOCK FOR ETCD LAN IP(S)"
+    state: present
+    block: |
+      # etcd cluster
+      {% for host in groups['etcd'] %}
+      {{  hostvars[host].ansible_default_ipv4.address }} {{ host }}
+      {% endfor %}
+      # worker nodes (needed for things like getting logs)
+      {% for host in groups['worker'] %}
+      {{  hostvars[host].ansible_default_ipv4.address }} {{ host }}
+      {% endfor %}
+      # other master nodes
+      {% for host in groups['master'] %}
+      {{  hostvars[host].ansible_default_ipv4.address }} {{ host }}
+      {% endfor %}
+
+- name: master | create main directory structure
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+    recurse: true
+  loop:
+    - /etc/kubernetes/kube-apiserver
+    - /etc/kubernetes/kube-controller-manager
+    - /etc/kubernetes/kube-proxy
+    - /etc/kubernetes/kube-scheduler
+    - /etc/kubernetes/kubelet
+    - /etc/kubernetes/manifests
+
+- import_tasks: include/kube-apiserver.yaml
+  tags:
+    - kube-apiserver
+- import_tasks: include/kube-controller-manager.yaml
+  tags:
+    - kube-controller-manage
+- import_tasks: include/kube-proxy.yaml
+  tags:
+    - kube-proxy
+- import_tasks: include/kube-scheduler.yaml
+  tags:
+    - kube-scheduler
+- import_tasks: include/kubelet.yaml
+  tags:
+    - kubelet
+
+- name: master | push static pod manifests
+  template:
+    src: etc/kubernetes/manifests/{{ item }}
+    dest: /etc/kubernetes/manifests
+    owner: root
+    group: root
+    mode: 0644
+  loop:
+    - kube-apiserver.yaml
+    - kube-controller-manager.yaml
+    - kube-scheduler.yaml
+  tags:
+    - manifests
+
+- meta: flush_handlers

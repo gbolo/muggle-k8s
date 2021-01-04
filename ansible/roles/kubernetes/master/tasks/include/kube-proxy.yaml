@@ -1,0 +1,31 @@
+# configuration tasks for kube-proxy
+
+- name: kube-proxy | push config file
+  template:
+    src: etc/kubernetes/kube-proxy/config.yaml
+    dest: /etc/kubernetes/kube-proxy/config.yaml
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart kube-proxy
+
+- name: kube-proxy | push kubeconfig files
+  copy:
+    src: "{{ kubeconfig_dir }}/kube-proxy-master.kubeconfig"
+    dest: /etc/kubernetes/kube-proxy/kube-proxy.kubeconfig
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart kube-proxy
+
+- name: kube-proxy | push systemd unit
+  template:
+    src: "lib/systemd/system/kube-proxy.service.j2"
+    dest: "/lib/systemd/system/kube-proxy.service"
+    owner: root
+    group: root
+    mode: 0664
+  notify:
+    - restart kube-proxy

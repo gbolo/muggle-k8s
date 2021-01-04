@@ -1,0 +1,17 @@
+# configuration tasks for kube-scheduler
+
+- name: kube-scheduler | push config file
+  template:
+    src: etc/kubernetes/kube-scheduler/config.yaml
+    dest: /etc/kubernetes/kube-scheduler/config.yaml
+    owner: root
+    group: root
+    mode: 0644
+
+- name: kube-scheduler | push kubeconfig files
+  copy:
+    src: "{{ kubeconfig_dir }}/kube-scheduler.kubeconfig"
+    dest: /etc/kubernetes/kube-scheduler/kube-scheduler.kubeconfig
+    owner: root
+    group: root
+    mode: 0644

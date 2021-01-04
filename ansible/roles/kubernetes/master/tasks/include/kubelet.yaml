@@ -1,0 +1,49 @@
+# configuration tasks for kubelet
+
+- name: kubelet | copy PKI
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+  loop:
+    # kubernetes CA
+    - src: "{{ k8s_pki_dir }}/k8s-ca.crt"
+      dest: /etc/kubernetes/kubelet/ca.crt
+    # server cert and key
+    - src: "{{ k8s_pki_dir }}/{{ inventory_hostname }}-kubelet.crt"
+      dest: /etc/kubernetes/kubelet/kubelet-server.crt
+    - src: "{{ k8s_pki_dir }}/{{ inventory_hostname }}-kubelet.key"
+      dest: /etc/kubernetes/kubelet/kubelet-server.key
+
+
+- name: kubelet | push config file
+  template:
+    src: etc/kubernetes/kubelet/config.yaml
+    dest: /etc/kubernetes/kubelet/config.yaml
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart kubelet
+
+- name: kubelet | push kubeconfig files
+  copy:
+    src: "{{ kubeconfig_dir }}/{{ inventory_hostname }}.kubeconfig"
+    dest: /etc/kubernetes/kubelet/kubelet.kubeconfig
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart kubelet
+
+- name: kubelet | push systemd unit
+  template:
+    src: "lib/systemd/system/kubelet.service.j2"
+    dest: "/lib/systemd/system/kubelet.service"
+    owner: root
+    group: root
+    mode: 0664
+  notify:
+    - restart kubelet

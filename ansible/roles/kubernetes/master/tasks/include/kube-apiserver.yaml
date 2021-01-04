@@ -1,0 +1,41 @@
+# configuration tasks for apiserver
+
+- name: kube-apiserver | copy PKI
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+  loop:
+    # kubernetes CA
+    - src: "{{ k8s_pki_dir }}/k8s-ca.crt"
+      dest: /etc/kubernetes/kube-apiserver/ca.crt
+    # server cert and key
+    - src: "{{ k8s_pki_dir }}/{{ inventory_hostname }}-apiserver.crt"
+      dest: /etc/kubernetes/kube-apiserver/apiserver.crt
+    - src: "{{ k8s_pki_dir }}/{{ inventory_hostname }}-apiserver.key"
+      dest: /etc/kubernetes/kube-apiserver/apiserver.key
+    # kubelet client auth
+    - src: "{{ k8s_pki_dir }}/apiserver-kubelet-client.crt"
+      dest: /etc/kubernetes/kube-apiserver/kubelet-client.crt
+    - src: "{{ k8s_pki_dir }}/apiserver-kubelet-client.key"
+      dest: /etc/kubernetes/kube-apiserver/kubelet-client.key
+    # etcd creds
+    - src: "{{ etcd_pki_dir }}/etcd-server-ca.crt"
+      dest: /etc/kubernetes/kube-apiserver/etcd-server-ca.crt
+    - src: "{{ etcd_pki_dir }}/kube-apiserver-etcd-client.crt"
+      dest: /etc/kubernetes/kube-apiserver/etcd-client.crt
+    - src: "{{ etcd_pki_dir }}/kube-apiserver-etcd-client.key"
+      dest: /etc/kubernetes/kube-apiserver/etcd-client.key
+    # service account signing verification (pub key)
+    - src: "{{ k8s_pki_dir }}/service-account.crt"
+      dest: /etc/kubernetes/kube-apiserver/service-account.crt
+
+- name: kube-apiserver | push encryption config
+  template:
+    src: etc/kubernetes/kube-apiserver/encryption-config.yaml
+    dest: /etc/kubernetes/kube-apiserver/encryption-config.yaml
+    owner: root
+    group: root
+    mode: 0644

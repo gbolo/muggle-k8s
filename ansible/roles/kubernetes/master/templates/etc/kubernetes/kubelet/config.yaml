@@ -1,0 +1,52 @@
+# {{ ansible_managed }}
+# reference: https://github.com/kubernetes/kubernetes/blob/master/staging/src/k8s.io/kubelet/config/v1beta1/types.go
+
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+
+nodeStatusUpdateFrequency: "10s"
+failSwapOn: true
+
+cgroupDriver: cgroupfs
+kubeletCgroups: /systemd/system.slice
+# cgroupDriver: systemd
+# kubeletCgroups: /systemd/system.slice
+
+address: 0.0.0.0
+readOnlyPort: 0
+healthzPort: 10248
+healthzBindAddress: 127.0.0.1
+
+maxPods: 110
+
+authentication:
+  anonymous:
+    enabled: false
+  webhook:
+    enabled: true
+  x509:
+    clientCAFile: /etc/kubernetes/kubelet/ca.crt
+authorization:
+  mode: Webhook
+
+clusterDomain: "{{ k8s_cluster_domain }}"
+clusterDNS:
+  - "{{ k8s_cluster_dns_ip }}"
+
+# this will create the apiserver and other master components
+staticPodPath: /etc/kubernetes/manifests
+
+kubeReserved:
+  cpu: 200m
+  memory: 512M
+
+# podCIDR is only used in standalone mode
+# podCIDR: "{{ k8s_pod_network_cidr }}"
+
+resolvConf: /etc/resolv.conf
+runtimeRequestTimeout: "15m"
+tlsCertFile: /etc/kubernetes/kubelet/kubelet-server.crt
+tlsPrivateKeyFile: /etc/kubernetes/kubelet/kubelet-server.key
+
+protectKernelDefaults: true
+rotateCertificates: true

@@ -1,0 +1,142 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    kubeadm.kubernetes.io/kube-apiserver.advertise-address.endpoint: {{ ansible_default_ipv4.address }}:6443
+  creationTimestamp: null
+  labels:
+    component: kube-apiserver
+    tier: control-plane
+  name: kube-apiserver
+  namespace: kube-system
+spec:
+  containers:
+  - command:
+    - kube-apiserver
+
+    # binding options
+    - --advertise-address={{ ansible_default_ipv4.address }}
+    - --bind-address=0.0.0.0
+    - --secure-port=6443
+    # this flag is DEPRECATED
+    - --insecure-port=0
+
+    # server TLS settings (served on secure-port)
+    - --tls-cert-file=/etc/kubernetes/kube-apiserver/apiserver.crt
+    - --tls-private-key-file=/etc/kubernetes/kube-apiserver/apiserver.key
+
+    # any request presenting a client certificate signed by one of
+    # the authorities in the client-ca-file is authenticated with an identity
+    # corresponding to the CommonName of the client certificate.
+    - --client-ca-file=/etc/kubernetes/kube-apiserver/ca.crt
+
+    # we need to allow containers to use privileged mode (like kibe-proxy)
+    - --allow-privileged=true
+    # if set to false, then the health check /healthz will fail with 401 :(
+    - --anonymous-auth=true
+
+    # endpoint reconciler
+    - --endpoint-reconciler-type={{ k8s_apiserver_endpoint_reconciler_type }}
+    # only used if endpoint-reconciler-type is master-count
+    - --apiserver-count={{ k8s_apiserver_count }}
+
+    # plug-ins to do authorization on secure port
+    - --authorization-mode=Node,RBAC
+
+    # audit log settings
+    - --audit-log-maxage=30
+    - --audit-log-maxbackup=3
+    - --audit-log-maxsize=100
+    - --audit-log-path=/var/log/audit.log
+
+    # admission plugins that should be enabled in addition to default enabled ones
+    - --enable-admission-plugins={{ k8s_apiserver_enable_admission_plugins | join(',') }}
+
+    # storage etcd settings
+    - --storage-backend=etcd3
+    - --etcd-cafile=/etc/kubernetes/kube-apiserver/etcd-server-ca.crt
+    - --etcd-certfile=/etc/kubernetes/kube-apiserver/etcd-client.crt
+    - --etcd-keyfile=/etc/kubernetes/kube-apiserver/etcd-client.key
+    - --etcd-servers={% for host in groups['etcd'] | sort() %}https://{{ host }}:{{ etcd_port | default('2379') }}{% if not loop.last %},{% endif %}{% endfor %}
+
+    # used to encrypt data to etcd cluster
+    - --encryption-provider-config=/etc/kubernetes/kube-apiserver/encryption-config.yaml
+
+    # amount of time to retain events
+    - --event-ttl=1h
+
+    # settings for connecting to kublets (for things like getting logs)
+    - --kubelet-certificate-authority=/etc/kubernetes/kube-apiserver/ca.crt
+    - --kubelet-client-certificate=/etc/kubernetes/kube-apiserver/kubelet-client.crt
+    - --kubelet-client-key=/etc/kubernetes/kube-apiserver/kubelet-client.key
+    - --kubelet-preferred-address-types=InternalDNS,InternalIP,Hostname,ExternalDNS,ExternalIP
+    # this flag is DEPRECATED
+    # - --kubelet-https=true
+
+    # a set of key=value pairs that enable or disable built-in APIs
+    - --runtime-config={{ k8s_runtime_config }}
+
+    # public key used to verify ServiceAccount tokens
+    - --service-account-key-file=/etc/kubernetes/kube-apiserver/service-account.crt
+
+    # a CIDR notation IP range from which to assign service cluster IPs.
+    # this must not overlap with any IP ranges assigned to nodes or pods.
+    - --service-cluster-ip-range={{ k8s_service_cluster_ip_range }}
+    # a port range to reserve for services with NodePort visibility
+    - --service-node-port-range={{ k8s_service_node_port_range }}
+
+    image: k8s.gcr.io/kube-apiserver:{{ k8s_version }}
+    imagePullPolicy: IfNotPresent
+    livenessProbe:
+      failureThreshold: 8
+      httpGet:
+        host: {{ ansible_default_ipv4.address }}
+        path: /healthz
+        port: 6443
+        scheme: HTTPS
+      initialDelaySeconds: 15
+      timeoutSeconds: 15
+    name: kube-apiserver
+    resources:
+      requests:
+        cpu: 250m
+    volumeMounts:
+    - mountPath: /etc/ssl/certs
+      name: ca-certs
+      readOnly: true
+    - mountPath: /etc/pki
+      name: etc-pki
+      readOnly: true
+    - mountPath: /etc/pki/ca-trust
+      name: etc-pki-ca-trust
+      readOnly: true
+    - mountPath: /etc/pki/tls
+      name: etc-pki-tls
+      readOnly: true
+    - mountPath: /etc/kubernetes/kube-apiserver
+      name: etc-apiserver
+      readOnly: true
+  hostNetwork: true
+  priorityClassName: system-cluster-critical
+  volumes:
+  - hostPath:
+      path: /etc/ssl/certs
+      type: DirectoryOrCreate
+    name: ca-certs
+  - hostPath:
+      path: /etc/pki
+      type: DirectoryOrCreate
+    name: etc-pki
+  - hostPath:
+      path: /etc/pki/ca-trust
+      type: ""
+    name: etc-pki-ca-trust
+  - hostPath:
+      path: /etc/pki/tls
+      type: ""
+    name: etc-pki-tls
+  - hostPath:
+      path: /etc/kubernetes/kube-apiserver
+      type: DirectoryOrCreate
+    name: etc-apiserver
+status: {}

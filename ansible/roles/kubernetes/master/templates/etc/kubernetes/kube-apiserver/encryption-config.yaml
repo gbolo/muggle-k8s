@@ -1,0 +1,15 @@
+---
+# {{ ansible_managed }}
+# reference: https://kubernetes.io/docs/tasks/administer-cluster/encrypt-data
+
+apiVersion: apiserver.config.k8s.io/v1
+kind: EncryptionConfiguration
+resources:
+  - resources:
+      - secrets
+    providers:
+      - identity: {}
+      - aescbc:
+          keys:
+            - name: key1
+              secret: {{ encryption_key | b64encode }}

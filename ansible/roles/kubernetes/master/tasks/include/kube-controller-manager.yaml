@@ -1,0 +1,24 @@
+# configuration tasks for kube-controller-manager
+
+- name: kube-controller-manager | copy PKI
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: 0644
+  loop:
+    # kubernetes CA
+    - src: "{{ k8s_pki_dir }}/k8s-ca.crt"
+      dest: /etc/kubernetes/kube-controller-manager/ca.crt
+    # service account signing
+    - src: "{{ k8s_pki_dir }}/service-account.key"
+      dest: /etc/kubernetes/kube-controller-manager/service-account.key
+
+- name: kube-controller-manager | push kubeconfig files
+  copy:
+    src: "{{ kubeconfig_dir }}/kube-controller-manager.kubeconfig"
+    dest: /etc/kubernetes/kube-controller-manager/kube-controller-manager.kubeconfig
+    owner: root
+    group: root
+    mode: 0644
