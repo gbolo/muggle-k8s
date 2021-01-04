@@ -4,3 +4,26 @@
   become: yes
   roles:
     - kubernetes/worker
+
+- name: label all worker nodes
+  hosts: localhost
+  connection: local
+  tasks:
+
+    - name: label all worker nodes
+      k8s:
+        kubeconfig: "{{ kubeconfig_dir }}/admin.kubeconfig"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Node
+          metadata:
+            name: "{{ item }}"
+            labels:
+              node-role.kubernetes.io/worker: ""
+      loop: "{{ groups.worker }}"
+      retries: 6
+      delay: 10
+      ignore_errors: yes
+      tags:
+        - label

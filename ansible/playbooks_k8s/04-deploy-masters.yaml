@@ -4,3 +4,44 @@
   become: yes
   roles:
     - kubernetes/master
+
+- name: label and taint all master nodes
+  hosts: localhost
+  connection: local
+  tasks:
+
+    - name: Wait for Kubernte API to be ready
+      command: "{{ bin_dir }}/kubectl get nodes"
+      environment:
+        - KUBECONFIG: "{{ kubeconfig_dir }}/admin.kubeconfig"
+      register: apiserver_is_ready
+      until: apiserver_is_ready.rc == 0
+      retries: 6
+      delay: 10
+      changed_when: false
+      tags:
+        - label
+        - taint
+
+    - name: label and taint all master nodes
+      k8s:
+        kubeconfig: "{{ kubeconfig_dir }}/admin.kubeconfig"
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Node
+          metadata:
+            name: "{{ item }}"
+            labels:
+              node-role.kubernetes.io/master: ""
+          spec:
+            taints:
+              - effect: NoSchedule
+                key: node-role.kubernetes.io/master
+      loop: "{{ groups.master }}"
+      retries: 6
+      delay: 10
+      ignore_errors: yes
+      tags:
+        - label
+        - taint
