@@ -31,6 +31,13 @@
     # service account signing verification (pub key)
     - src: "{{ k8s_pki_dir }}/service-account.crt"
       dest: /etc/kubernetes/kube-apiserver/service-account.crt
+    # aggregation layer pki
+    - src: "{{ k8s_pki_dir }}/aggregator-ca.crt"
+      dest: /etc/kubernetes/kube-apiserver/aggregator-ca.crt
+    - src: "{{ k8s_pki_dir }}/aggregator-proxy-client.crt"
+      dest: /etc/kubernetes/kube-apiserver/aggregator-proxy-client.crt
+    - src: "{{ k8s_pki_dir }}/aggregator-proxy-client.key"
+      dest: /etc/kubernetes/kube-apiserver/aggregator-proxy-client.key
 
 - name: kube-apiserver | push encryption config
   template:

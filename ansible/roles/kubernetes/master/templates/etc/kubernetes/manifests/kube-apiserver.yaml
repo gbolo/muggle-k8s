@@ -85,6 +85,19 @@ spec:
     # a port range to reserve for services with NodePort visibility
     - --service-node-port-range={{ k8s_service_node_port_range }}
 
+    # enable aggregation layer, which allows the api to be extended by other APIs
+    # https://kubernetes.io/docs/tasks/extend-kubernetes/configure-aggregation-layer/
+    - --requestheader-client-ca-file=/etc/kubernetes/kube-apiserver/aggregator-ca.crt
+    - --requestheader-allowed-names=front-proxy-client
+    - --requestheader-extra-headers-prefix=X-Remote-Extra-
+    - --requestheader-group-headers=X-Remote-Group
+    - --requestheader-username-headers=X-Remote-User
+    - --proxy-client-cert-file=/etc/kubernetes/kube-apiserver/aggregator-proxy-client.crt
+    - --proxy-client-key-file=/etc/kubernetes/kube-apiserver/aggregator-proxy-client.key
+    # set this to false in master nodes also have a kube-proxy
+    - --enable-aggregator-routing=false
+
+
     image: k8s.gcr.io/kube-apiserver:{{ k8s_version }}
     imagePullPolicy: IfNotPresent
     livenessProbe:

@@ -1,0 +1,55 @@
+# https://kubernetes.io/docs/tasks/extend-kubernetes/configure-aggregation-layer/
+- name: Generate aggregator proxy CA private key
+  openssl_privatekey:
+    type: ECC
+    curve: "{{ aggregator_root_ca.curve }}"
+    path: "{{ k8s_pki_dir }}/aggregator-ca.key"
+
+- name: Generate aggregator proxy CA ca csr
+  openssl_csr:
+    path: "{{ k8s_pki_dir }}/aggregator-ca.csr"
+    privatekey_path: "{{ k8s_pki_dir }}/aggregator-ca.key"
+    basic_constraints: "CA:TRUE"
+    basic_constraints_critical: true
+    key_usage:
+      - cRLSign
+      - keyCertSign
+    key_usage_critical: true
+    common_name: "Kubernetes Aggregation Layer Proxy CA"
+
+- name: Generate aggregator proxy ca certificates
+  openssl_certificate:
+    provider: selfsigned
+    selfsigned_not_after: "{{ aggregator_root_ca.expiration }}"
+    selfsigned_digest: "{{ aggregator_root_ca.digest }}"
+    path: "{{ k8s_pki_dir }}/aggregator-ca.crt"
+    privatekey_path: "{{ k8s_pki_dir }}/aggregator-ca.key"
+    csr_path: "{{ k8s_pki_dir }}/aggregator-ca.csr"
+
+
+- name: Generate aggregator proxy client private key
+  openssl_privatekey:
+    type: ECC
+    curve: "{{ aggregator_proxy_client.curve }}"
+    path: '{{ k8s_pki_dir }}/aggregator-proxy-client.key'
+
+- name: Generate aggregator proxy client csr
+  openssl_csr:
+    path: '{{ k8s_pki_dir }}/aggregator-proxy-client.csr'
+    privatekey_path: '{{ k8s_pki_dir }}/aggregator-proxy-client.key'
+    common_name: "front-proxy-client"
+    key_usage:
+      - digitalSignature
+      - keyEncipherment
+    key_usage_critical: true
+    extended_key_usage: clientAuth
+
+- name: Generate aggregator proxy client certificate
+  openssl_certificate:
+    path: '{{ k8s_pki_dir }}/aggregator-proxy-client.crt'
+    csr_path: '{{ k8s_pki_dir }}/aggregator-proxy-client.csr'
+    ownca_path: '{{ k8s_pki_dir }}/aggregator-ca.crt'
+    ownca_privatekey_path: '{{ k8s_pki_dir }}/aggregator-ca.key'
+    ownca_not_after: "{{ aggregator_proxy_client.expiration }}"
+    ownca_digest: "{{ aggregator_proxy_client.digest }}"
+    provider: ownca

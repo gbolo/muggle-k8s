@@ -1,5 +1,5 @@
 ---
-  
+
 - name: Assertions
   include: 00-assertions.yaml
   tags:
@@ -67,3 +67,8 @@
   include: 05-admin.yaml
   tags:
     - admin
+
+- name: aggregator pki
+  include: 06-aggregator-auth.yaml
+  tags:
+    - aggregator

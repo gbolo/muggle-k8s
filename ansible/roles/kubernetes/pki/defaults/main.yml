@@ -62,3 +62,15 @@ k8s_admin:
   curve: secp256r1
   digest: sha256
   expiration: "+365d"
+
+# aggregator proxy root CA details
+aggregator_root_ca:
+  curve: secp521r1
+  digest: sha512
+  expiration: "+3650d"
+
+# aggregator proxy client user
+aggregator_proxy_client:
+  curve: secp256r1
+  digest: sha256
+  expiration: "+365d"
