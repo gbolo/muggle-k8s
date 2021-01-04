@@ -67,9 +67,9 @@
     group: root
     mode: 0644
   loop:
-    - src: "{{ k8s_pki_dir }}/{{ inventory_hostname }}-kublet.crt"
+    - src: "{{ k8s_pki_dir }}/{{ inventory_hostname }}-kubelet.crt"
       dest: "/etc/kubernetes/kubelet/"
-    - src: "{{ k8s_pki_dir }}/{{ inventory_hostname }}-kublet.key"
+    - src: "{{ k8s_pki_dir }}/{{ inventory_hostname }}-kubelet.key"
       dest: "/etc/kubernetes/kubelet/"
     - src: "{{ kubeconfig_dir }}/{{ inventory_hostname }}.kubeconfig"
       dest: "/etc/kubernetes/kubelet/"

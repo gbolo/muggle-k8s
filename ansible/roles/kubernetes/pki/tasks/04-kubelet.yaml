@@ -6,18 +6,18 @@
   loop: "{{ groups.worker }}"
   connection: ssh
 
-# server cert for kublet api endpoint ------------------------------------------
+# server cert for kubelet api endpoint ------------------------------------------
 - name: Generate kubelet servers private keys
   openssl_privatekey:
     type: ECC
-    curve: "{{ k8s_kublet.curve }}"
-    path: '{{ k8s_pki_dir }}/{{ item }}-kublet.key'
+    curve: "{{ k8s_kubelet.curve }}"
+    path: '{{ k8s_pki_dir }}/{{ item }}-kubelet.key'
   loop: "{{ groups.worker | union(groups.master) | unique }}"
 
 - name: Generate kubelet servers csrs
   openssl_csr:
-    path: "{{ k8s_pki_dir }}/{{ item }}-kublet.csr"
-    privatekey_path: "{{ k8s_pki_dir }}/{{ item }}-kublet.key"
+    path: "{{ k8s_pki_dir }}/{{ item }}-kubelet.csr"
+    privatekey_path: "{{ k8s_pki_dir }}/{{ item }}-kubelet.key"
     common_name: "system:node:{{ item }}"
     key_usage:
       - digitalSignature
@@ -36,28 +36,28 @@
 
 - name: Generate kubelet servers certificates
   openssl_certificate:
-    path: '{{ k8s_pki_dir }}/{{ item }}-kublet.crt'
-    csr_path: '{{ k8s_pki_dir }}/{{ item }}-kublet.csr'
+    path: '{{ k8s_pki_dir }}/{{ item }}-kubelet.crt'
+    csr_path: '{{ k8s_pki_dir }}/{{ item }}-kubelet.csr'
     ownca_path: '{{ k8s_pki_dir }}/k8s-ca.crt'
     ownca_privatekey_path: '{{ k8s_pki_dir }}/k8s-ca.key'
-    ownca_not_after: "{{ k8s_kublet.expiration }}"
-    ownca_digest: "{{ k8s_kublet.digest }}"
+    ownca_not_after: "{{ k8s_kubelet.expiration }}"
+    ownca_digest: "{{ k8s_kubelet.digest }}"
     provider: ownca
   loop: "{{ groups.worker | union(groups.master) | unique }}"
 
 
-# client cert for kublet uses for auth to apiserver ----------------------------
+# client cert for kubelet uses for auth to apiserver ----------------------------
 - name: Generate kubelet clients private keys
   openssl_privatekey:
     type: ECC
-    curve: "{{ k8s_kublet.curve }}"
-    path: '{{ k8s_pki_dir }}/{{ item }}-kublet-client.key'
+    curve: "{{ k8s_kubelet.curve }}"
+    path: '{{ k8s_pki_dir }}/{{ item }}-kubelet-client.key'
   loop: "{{ groups.worker | union(groups.master) | unique }}"
 
 - name: Generate kubelet clients csrs
   openssl_csr:
-    path: "{{ k8s_pki_dir }}/{{ item }}-kublet-client.csr"
-    privatekey_path: "{{ k8s_pki_dir }}/{{ item }}-kublet-client.key"
+    path: "{{ k8s_pki_dir }}/{{ item }}-kubelet-client.csr"
+    privatekey_path: "{{ k8s_pki_dir }}/{{ item }}-kubelet-client.key"
     common_name: "system:node:{{ item }}"
     key_usage:
       - digitalSignature
@@ -70,11 +70,11 @@
 
 - name: Generate kubelet clients certificates
   openssl_certificate:
-    path: '{{ k8s_pki_dir }}/{{ item }}-kublet-client.crt'
-    csr_path: '{{ k8s_pki_dir }}/{{ item }}-kublet-client.csr'
+    path: '{{ k8s_pki_dir }}/{{ item }}-kubelet-client.crt'
+    csr_path: '{{ k8s_pki_dir }}/{{ item }}-kubelet-client.csr'
     ownca_path: '{{ k8s_pki_dir }}/k8s-ca.crt'
     ownca_privatekey_path: '{{ k8s_pki_dir }}/k8s-ca.key'
-    ownca_not_after: "{{ k8s_kublet.expiration }}"
-    ownca_digest: "{{ k8s_kublet.digest }}"
+    ownca_not_after: "{{ k8s_kubelet.expiration }}"
+    ownca_digest: "{{ k8s_kubelet.digest }}"
     provider: ownca
   loop: "{{ groups.worker | union(groups.master) | unique }}"

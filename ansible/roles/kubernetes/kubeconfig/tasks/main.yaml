@@ -109,8 +109,8 @@
       users:
         - name: system:node:{{ item }}
           user:
-            client-certificate-data: {{ lookup('file', '{{ k8s_pki_dir }}/{{ item }}-kublet-client.crt') | b64encode }}
-            client-key-data: {{ lookup('file', '{{ k8s_pki_dir }}/{{ item }}-kublet-client.key') | b64encode }}
+            client-certificate-data: {{ lookup('file', '{{ k8s_pki_dir }}/{{ item }}-kubelet-client.crt') | b64encode }}
+            client-key-data: {{ lookup('file', '{{ k8s_pki_dir }}/{{ item }}-kubelet-client.key') | b64encode }}
     dest: "{{ kubeconfig_dir }}/{{ item }}.kubeconfig"
   loop: "{{ groups.worker }}"
   tags:
@@ -137,8 +137,8 @@
       users:
         - name: system:node:{{ item }}
           user:
-            client-certificate-data: {{ lookup('file', '{{ k8s_pki_dir }}/{{ item }}-kublet-client.crt') | b64encode }}
-            client-key-data: {{ lookup('file', '{{ k8s_pki_dir }}/{{ item }}-kublet-client.key') | b64encode }}
+            client-certificate-data: {{ lookup('file', '{{ k8s_pki_dir }}/{{ item }}-kubelet-client.crt') | b64encode }}
+            client-key-data: {{ lookup('file', '{{ k8s_pki_dir }}/{{ item }}-kubelet-client.key') | b64encode }}
     dest: "{{ kubeconfig_dir }}/{{ item }}.kubeconfig"
   loop: "{{ groups.master }}"
   tags:

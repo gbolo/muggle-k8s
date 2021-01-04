@@ -58,7 +58,7 @@
   loop: "{{ groups.master }}"
 
 
-# certifcate used to authenticate calls to worker kublets ----------------------
+# certifcate used to authenticate calls to worker kubelets ----------------------
 - name: Generate apiserver kubelet client private key
   openssl_privatekey:
     path: "{{ k8s_pki_dir }}/apiserver-kubelet-client.key"

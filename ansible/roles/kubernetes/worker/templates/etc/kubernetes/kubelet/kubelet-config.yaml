@@ -27,5 +27,5 @@ clusterDNS:
 
 resolvConf: "/etc/resolv.conf"
 runtimeRequestTimeout: "15m"
-tlsCertFile: "/etc/kubernetes/kubelet/{{ inventory_hostname }}-kublet.crt"
-tlsPrivateKeyFile: "/etc/kubernetes/kubelet/{{ inventory_hostname }}-kublet.key"
+tlsCertFile: "/etc/kubernetes/kubelet/{{ inventory_hostname }}-kubelet.crt"
+tlsPrivateKeyFile: "/etc/kubernetes/kubelet/{{ inventory_hostname }}-kubelet.key"
