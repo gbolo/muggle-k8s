@@ -8,9 +8,6 @@
 # Domain for this cluster. If set, kubelet will configure all containers to search this domain in addition to the host's search domains
 k8s_cluster_domain: cluster.local
 
-# CIDR notation IP range for Pods in the cluster. Requires --allocate-node-cidrs to be true
-k8s_pod_network_cidr: 10.42.0.0/16
-
 # nodePortAddresses is the --nodeport-addresses value for kube-proxy process. Values must be valid
 # IP blocks. These values are as a parameter to select the interfaces where nodeport works.
 # In case someone would like to expose a service on localhost for local visit and some other interfaces for
@@ -21,8 +18,6 @@ k8s_pod_network_cidr: 10.42.0.0/16
 k8s_kubelet_node_port_dddresses:
   - "{{ ansible_default_ipv4.address }}/32"
   - 127.0.0.0/8
-
-
 
 #
 # reference: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
