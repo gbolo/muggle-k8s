@@ -1,0 +1,7 @@
+---
+# CIDR notation IP range for Pods in the cluster. Requires --allocate-node-cidrs to be true
+k8s_pod_network_cidr: 10.42.0.0/16
+
+# The method to use to autodetect the IPv4 address for this host.
+# https://docs.projectcalico.org/reference/node/configuration#ip-autodetection-methods
+calico_ip_autodetect_method: "interface=ens.*"

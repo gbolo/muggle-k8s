@@ -1,0 +1,6 @@
+---
+- name: calico | deploy as CNI plugin
+  k8s:
+    definition: "{{ lookup('template', 'calico-cni.yaml.j2') }}"
+    kubeconfig: "{{ kubeconfig_dir }}/admin.kubeconfig"
+    apply: true

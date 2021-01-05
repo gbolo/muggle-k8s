@@ -1,0 +1,24 @@
+---
+- name: Deploy CNI plugin
+  hosts: localhost
+  connection: local
+
+  pre_tasks:
+
+    - name: validate selected cni network plugin [{{ k8s_network_cni_plugin }}]
+      assert:
+        that: k8s_network_cni_plugin in ['calico', 'weave-net']
+        msg: "{{ k8s_network_cni_plugin }} is not supported"
+
+
+  roles:
+
+    - name: kubernetes/cni-plugin-weave-net
+      when: k8s_network_cni_plugin == 'weave-net'
+      tags:
+        - weave-net
+
+    - name: kubernetes/cni-plugin-calico
+      when: k8s_network_cni_plugin == 'calico'
+      tags:
+        - calico
