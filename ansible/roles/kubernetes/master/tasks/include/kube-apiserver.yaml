@@ -31,6 +31,8 @@
     # service account signing verification (pub key)
     - src: "{{ k8s_pki_dir }}/service-account.crt"
       dest: /etc/kubernetes/kube-apiserver/service-account.crt
+    - src: "{{ k8s_pki_dir }}/service-account.key"
+      dest: /etc/kubernetes/kube-apiserver/service-account.key
     # aggregation layer pki
     - src: "{{ k8s_pki_dir }}/aggregator-ca.crt"
       dest: /etc/kubernetes/kube-apiserver/aggregator-ca.crt

@@ -97,6 +97,14 @@ spec:
     # set this to false in master nodes also have a kube-proxy
     - --enable-aggregator-routing=false
 
+    # feature gates
+    # - --feature-gates=BoundServiceAccountTokenVolume=false
+
+    # 1.20 required flags
+    - --service-account-issuer=https://kubernetes.default.svc
+    - --service-account-signing-key-file=/etc/kubernetes/kube-apiserver/service-account.key
+
+
 
     image: k8s.gcr.io/kube-apiserver:{{ k8s_version }}
     imagePullPolicy: IfNotPresent

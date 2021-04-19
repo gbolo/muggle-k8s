@@ -1,0 +1,170 @@
+---
+
+- hosts:
+    - worker
+  become: true
+  gather_facts: no
+  any_errors_fatal: true
+
+  tasks:
+
+    - name: stop system services
+      systemd:
+        name: "{{ item }}"
+        state: stopped
+        enabled: false
+      ignore_errors: true
+      loop:
+        - kubelet.service
+        - kube-proxy.service
+
+    - name: reset | remove all containers
+      shell: |
+        set -o pipefail && docker ps -aq | xargs -r docker rm -fv
+      args:
+        executable: /bin/bash
+      register: remove_all_containers
+      retries: 4
+      until: remove_all_containers.rc == 0
+      delay: 5
+
+    - name: reset | gather mounted kubelet dirs  # noqa 301
+      shell: set -o pipefail && mount | grep /var/lib/kubelet/ | awk '{print $3}' | tac
+      args:
+        executable: /bin/bash
+        warn: false
+      check_mode: no
+      register: mounted_dirs
+      ignore_errors: true
+      tags:
+        - mounts
+
+    - name: reset | unmount kubelet dirs  # noqa 301
+      command: umount -f {{ item }}
+      with_items: "{{ mounted_dirs.stdout_lines }}"
+      register: umount_dir
+      retries: 4
+      until: umount_dir.rc == 0
+      delay: 5
+      tags:
+        - mounts
+
+
+    - name: destroy everything
+      shell: |
+        rm -rf /lib/systemd/system/kubelet.service && \
+        rm -rf /lib/systemd/system/kube-proxy.service && \
+        systemctl daemon-reload && \
+        rm -rf /etc/kubernetes && \
+        rm -rf /var/lib/cni && \
+        rm -rf /var/lib/calico && \
+        rm -rf /var/lib/weave
+
+- hosts:
+    - master
+  become: true
+  gather_facts: no
+  any_errors_fatal: true
+
+  tasks:
+
+    - name: stop system services
+      systemd:
+        name: "{{ item }}"
+        state: stopped
+        enabled: false
+      ignore_errors: true
+      loop:
+        - kube-controller-manager.service
+        - kube-scheduler.service
+        - kube-apiserver.service
+        - kubelet.service
+        - kube-proxy.service
+
+    - name: destroy everything
+      shell: |
+        rm -rf /lib/systemd/system/kube-*.service && \
+        rm -rf /lib/systemd/system/kubelet.service && \
+        systemctl daemon-reload && \
+        rm -rf /etc/kubernetes
+
+
+    - name: reset | remove all containers
+      shell: |
+        set -o pipefail && docker ps -aq | xargs -r docker rm -fv
+      args:
+        executable: /bin/bash
+      register: remove_all_containers
+      retries: 4
+      until: remove_all_containers.rc == 0
+      delay: 5
+
+    - name: reset | gather mounted kubelet dirs  # noqa 301
+      shell: set -o pipefail && mount | grep /var/lib/kubelet/ | awk '{print $3}' | tac
+      args:
+        executable: /bin/bash
+        warn: false
+      check_mode: no
+      register: mounted_dirs
+      ignore_errors: true
+      tags:
+        - mounts
+
+    - name: reset | unmount kubelet dirs  # noqa 301
+      command: umount -f {{ item }}
+      with_items: "{{ mounted_dirs.stdout_lines }}"
+      register: umount_dir
+      retries: 4
+      until: umount_dir.rc == 0
+      delay: 5
+      tags:
+        - mounts
+
+
+- hosts:
+    - etcd
+  become: true
+  gather_facts: no
+  any_errors_fatal: true
+
+  tasks:
+
+    - name: wipe all etcd data
+      run_once: true
+      shell: |
+        /opt/etcd/etcdctl.sh del '""' --from-key=true
+
+
+
+- hosts:
+    - worker
+    - master
+  become: true
+  gather_facts: no
+  any_errors_fatal: true
+
+  tasks:
+
+    - name: remove rancher directories and files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/ceph
+        - /etc/cni
+        - /etc/kubernetes
+        - /opt/cni
+        - /opt/rke
+        - /run/secrets/kubernetes.io
+        - /run/calico
+        - /run/flannel
+        - /var/lib/calico
+        - /var/lib/etcd
+        - /var/lib/cni
+        - /var/lib/kubelet
+        - /var/lib/rancher/rke/log
+        - /var/log/containers
+        - /var/log/kube-audit
+        - /var/log/pods
+        - /var/run/calico
+      ignore_errors: true

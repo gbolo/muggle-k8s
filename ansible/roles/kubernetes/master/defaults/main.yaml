@@ -56,7 +56,7 @@ k8s_apiserver_enable_admission_plugins:
     # https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#defaulttolerationseconds
     - DefaultTolerationSeconds
     # injects a pod with the fields specified in a matching PodPreset
-    - PodPreset
+    # - PodPreset
     # acts on creation and modification of the pod and determines if it should be admitted based on the requested security context and the available Pod Security Policies
     # - PodSecurityPolicy
 

@@ -1,0 +1,8 @@
+- import_playbook: 03-download-k8s-bins.yaml
+- import_playbook: 04-deploy-masters.yaml
+- import_playbook: 05-deploy-workers.yaml
+- import_playbook: 06-prepare-network-plugin-cni.yaml
+- import_playbook: 07-deploy-cni-plugin.yaml
+- import_playbook: 08-deploy-coredns.yaml
+- import_playbook: optional-deploy-nodelocal-dnscache.yaml
+- import_playbook: 09-deploy-ingress-nginx-controller.yaml
