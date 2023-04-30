@@ -1,0 +1,115 @@
+- name: ensure directories are present
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0700
+  with_items:
+    - "{{ containerd_home }}"
+    - "{{ containerd_bin_dir }}"
+    - "{{ containerd_bin_dir }}/v{{ containerd_version }}"
+    - "{{ containerd_config_dir }}"
+
+- name: download containerd archive
+  ansible.builtin.get_url:
+    url: "{{ containerd_archive_url }}"
+    dest: "{{ containerd_bin_dir }}/v{{ containerd_version }}/containerd-v{{ containerd_version }}.tgz"
+    mode: 0644
+
+- name: extract bins from archive
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "{{ containerd_bin_dir }}/v{{ containerd_version }}/containerd-v{{ containerd_version }}.tgz"
+    dest: "{{ containerd_bin_dir }}/v{{ containerd_version }}"
+    creates: "{{ containerd_bin_dir }}/v{{ containerd_version }}/containerd"
+    extra_opts:
+    - --transform
+    # remove bin/
+    - s/^bin//
+
+- name: symlink to desired containerd version
+  ansible.builtin.file:
+    state: link
+    src: "{{ containerd_bin_dir }}/v{{ containerd_version }}/{{ item }}"
+    dest: "{{ containerd_bin_dir }}/{{ item }}"
+    owner: root
+    group: root
+  with_items:
+    - containerd
+    - containerd-shim
+    - containerd-shim-runc-v1
+    - containerd-shim-runc-v2
+    - containerd-stress
+    - ctr
+
+- name: generate default base_runtime_spec
+  register: ctr_oci_spec
+  command: "{{ containerd_bin_dir }}/ctr oci spec"
+  check_mode: false
+  changed_when: false
+
+- name: store generated default base_runtime_spec
+  ansible.builtin.set_fact:
+    containerd_default_base_runtime_spec: "{{ ctr_oci_spec.stdout | from_json }}"
+
+# TODO: change rlimits.soft/hard to higher values
+- name: write base_runtime_specs
+  ansible.builtin.copy:
+    content: "{{ containerd_default_base_runtime_spec | to_nice_json }}"
+    dest: "{{ containerd_config_dir }}/cri-base.json"
+    owner: root
+    mode: 0644
+  notify: restart containerd
+
+- name: write main config file
+  ansible.builtin.copy:
+    content: "{{ containerd_config_content }}"
+    dest: "{{ containerd_config_dir }}/config.toml"
+    owner: root
+    mode: 0644
+  notify: restart containerd
+
+- name: push containerd systemd unit file
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/containerd.service
+    owner: root
+    group: root
+    mode: 0644
+    content: |
+      [Unit]
+      Description=containerd container runtime
+      Documentation=https://containerd.io
+      After=network.target local-fs.target
+
+      [Service]
+      ExecStartPre=-/sbin/modprobe overlay
+      ExecStart={{ containerd_bin_dir }}/containerd --config {{ containerd_config_dir }}/config.toml
+
+      Type=notify
+      Delegate=yes
+      KillMode=process
+      Restart=always
+      RestartSec=5
+      # Having non-zero Limit*s causes performance problems due to accounting overhead
+      # in the kernel. We recommend using cgroups to do container-local accounting.
+      LimitNPROC=infinity
+      LimitCORE=infinity
+      LimitNOFILE=infinity
+      LimitMEMLOCK=infinity
+      # Comment TasksMax if your systemd version does not supports it.
+      # Only systemd 226 and above support this version.
+      TasksMax=infinity
+      OOMScoreAdjust=-999
+      # Set the cgroup slice of the service so that kube reserved takes effect
+
+      [Install]
+      WantedBy=multi-user.target
+  tags:
+    - config
+
+- name: ensure containerd is running and enabled
+  ansible.builtin.service:
+    name: containerd
+    enabled: true
+    state: started

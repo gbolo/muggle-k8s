@@ -1,0 +1,15 @@
+- name: download runc bin
+  ansible.builtin.get_url:
+    url: "{{ runc_download_url }}"
+    dest: "{{ runc_bin_dir }}/runc_v{{ runc_version }}"
+    owner: root
+    group: root
+    mode: 0755
+
+- name: symlink to desired runc version
+  ansible.builtin.file:
+    state: link
+    src: "{{ runc_bin_dir }}/runc_v{{ runc_version }}"
+    dest: "{{ runc_bin_dir }}/runc"
+    owner: root
+    group: root
