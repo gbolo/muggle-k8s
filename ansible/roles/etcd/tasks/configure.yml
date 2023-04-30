@@ -1,0 +1,47 @@
+---
+- name: create etcd user
+  user:
+    name: "{{ etcd_user.name }}"
+    uid: "{{ etcd_user.id }}"
+    shell: /sbin/nologin
+    state: present
+
+- name: ensure directories are present
+  file:
+    path: "{{ item }}"
+    state: "directory"
+    owner: "{{ etcd_user.name }}"
+    group: "root"
+    mode: '0700'
+  with_items:
+    - "{{ etcd_config_directory }}"
+    - "{{ etcd_data_directory }}"
+    - "{{ etcd_bin_directory }}"
+
+- name: add etcd internal IP addreses to hosts file
+  blockinfile:
+    path: /etc/hosts
+    marker: "# {mark} ANSIBLE MANAGED BLOCK FOR ETCD LAN IP(S)"
+    state: present
+    block: |
+      {% for host in groups['etcd'] %}
+      {{  hostvars[host].ansible_default_ipv4.address }} {{ host }}
+      {% endfor %}
+
+- name: push etcdctl wrapper script
+  template:
+    src: etcdctl.sh.j2
+    dest: "{{ etcd_home }}/etcdctl.sh"
+    mode: "750"
+  tags:
+    - etcdctl
+
+- name: push etcd config file
+  copy:
+    content: "{{ etcd_config_yaml | to_yaml }}"
+    dest: "{{ etcd_config_directory }}/config.yaml"
+    owner: "{{ etcd_user.name }}"
+    group: "root"
+    mode: "0750"
+  tags:
+    - config

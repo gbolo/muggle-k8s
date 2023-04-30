@@ -1,14 +1,14 @@
 ---
 
-- name: docker network
-  include: docker_network.yml
-  tags:
-    - docker-network
-
 - name: deploy tls
   include: tls.yml
   tags:
     - tls
+
+- name: configure
+  include: configure.yml
+  tags:
+    - config
 
 - name: deploy etcd daemon
   include: deploy.yml

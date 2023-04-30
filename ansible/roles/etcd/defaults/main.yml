@@ -1,51 +1,55 @@
 # deployment -------------------------------------------------------------------
 etcd_home: "/opt/etcd"
+etcd_config_directory: "{{ etcd_home }}/conf"
 etcd_data_directory: "{{ etcd_home }}/data"
+etcd_bin_directory: "{{ etcd_home }}/bin"
 
 etcd_client_port: "2379"
 etcd_peer_port: "2380"
 
 etcd_user:
-  id: 30002
-  name: dkr-etcd
+  id: 30011
+  name: etcd
 
-etcd_docker_image: quay.io/coreos/etcd:v3.4.13
+etcd_version: v3.4.25
+etcd_archive_url: https://github.com/etcd-io/etcd/releases/download/{{ etcd_version }}/etcd-{{ etcd_version }}-linux-amd64.tar.gz
 
 etcd_initial_cluster_token: oe5lohh1quee9zoomaix7Goh
 
-etcd_docker_env:
-  ETCD_NAME: "{{ inventory_hostname }}"
-  ETCD_DATA_DIR: "/data"
-  ETCD_LOGGER: "zap"
-  ETCD_LOG_LEVEL: "debug"
-  ETCD_LOG_OUTPUTS: "stdout"
+etcd_config_yaml:
+  name: "{{ inventory_hostname }}"
+  data-dir: "{{ etcd_data_directory }}"
+  logger: "zap"
+  log-level: "debug"
+  log-outputs: [stderr]
 
   ## listen addresses (bind to all interfaces in docer container)
   # used for peer-tp-peer etcd communication
-  ETCD_LISTEN_PEER_URLS: "https://0.0.0.0:2380"
+  listen-peer-urls: "https://0.0.0.0:2380"
   # used for clients (application) to connect to
-  ETCD_LISTEN_CLIENT_URLS: "https://0.0.0.0:2379"
+  listen-client-urls: "https://0.0.0.0:2379"
 
   # etcd peer clustering (static)
-  ETCD_INITIAL_ADVERTISE_PEER_URLS: https://{{ inventory_hostname }}:{{ etcd_peer_port | default('2380') }}
-  ETCD_INITIAL_CLUSTER: "{% for host in groups['etcd'] | sort() %}{{ host }}=https://{{ host }}:{{ etcd_peer_port | default('2380') }}{% if not loop.last %},{% endif %}{% endfor %}"
-  ETCD_INITIAL_CLUSTER_STATE: new
-  ETCD_INITIAL_CLUSTER_TOKEN: "{{ etcd_initial_cluster_token }}"
+  initial-advertise-peer-urls: https://{{ inventory_hostname }}:{{ etcd_peer_port | default('2380') }}
+  initial-cluster: "{% for host in groups['etcd'] | sort() %}{{ host }}=https://{{ host }}:{{ etcd_peer_port | default('2380') }}{% if not loop.last %},{% endif %}{% endfor %}"
+  initial-cluster-state: new
+  initial-cluster-token: "{{ etcd_initial_cluster_token }}"
 
   # etcd endpoint that clients (application) talk to
-  ETCD_ADVERTISE_CLIENT_URLS:  https://{{ inventory_hostname }}:{{ etcd_client_port | default('2379') }}
+  advertise-client-urls:  https://{{ inventory_hostname }}:{{ etcd_client_port | default('2379') }}
 
   ## TLS settings
   # peer-to-peer TLS
-  ETCD_PEER_CLIENT_CERT_AUTH: "{{ etcd_tls_peer_client_auth | string }}"
-  ETCD_PEER_TRUSTED_CA_FILE: /etc/tls/peer-ca.pem
-  ETCD_PEER_CERT_FILE: /etc/tls/peer-cert.pem
-  ETCD_PEER_KEY_FILE: /etc/tls/peer-key.pem
-  # client-to-etcd TLS
-  ETCD_CLIENT_CERT_AUTH: "{{ etcd_tls_client_auth | string }}"
-  ETCD_TRUSTED_CA_FILE: /etc/tls/client-ca.pem
-  ETCD_CERT_FILE: /etc/tls/cert.pem
-  ETCD_KEY_FILE: /etc/tls/key.pem
+  peer-transport-security:
+    cert-file: "{{ etcd_tls_directory }}/peer-cert.pem"
+    key-file: "{{ etcd_tls_directory }}/peer-key.pem"
+    client-cert-auth: "{{ etcd_tls_peer_client_auth | bool }}"
+    trusted-ca-file: "{{ etcd_tls_directory }}/peer-ca.pem"
+  client-transport-security:
+    cert-file: "{{ etcd_tls_directory }}/cert.pem"
+    key-file: "{{ etcd_tls_directory }}/key.pem"
+    client-cert-auth: "{{ etcd_tls_client_auth | bool }}"
+    trusted-ca-file: "{{ etcd_tls_directory }}/client-ca.pem"
 
 # TLS related ------------------------------------------------------------------
 # this is where we push the tls certs/keys on the server

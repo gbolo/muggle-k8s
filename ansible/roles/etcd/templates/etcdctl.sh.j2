@@ -8,17 +8,17 @@ DEFAULT_API_VERSION=3
 ETCDCTL_API=${ETCDCTL_API:-$DEFAULT_API_VERSION}
 
 if [[ "${ETCDCTL_API}" -eq 3 ]]; then
-  docker exec -e ETCDCTL_API=$ETCDCTL_API -i etcd etcdctl \
-    --cert /etc/tls/cert.pem \
-    --key /etc/tls/key.pem \
-    --cacert /etc/tls/client-ca.pem \
+  ETCDCTL_API=$ETCDCTL_API {{ etcd_bin_directory }}/etcdctl \
+    --cert {{ etcd_tls_directory }}/cert.pem \
+    --key {{ etcd_tls_directory }}/key.pem \
+    --cacert {{ etcd_tls_directory }}/client-ca.pem \
     --endpoints={% for host in groups['etcd'] | sort() %}{{ host }}:{{ etcd_client_port | default('2379') }}{% if not loop.last %},{% endif %}{% endfor %} \
     $@
 elif [[ "${ETCDCTL_API}" -eq 2 ]]; then
-  docker exec -e ETCDCTL_API=$ETCDCTL_API -i etcd etcdctl \
-    --cert-file /etc/tls/cert.pem \
-    --key-file /etc/tls/key.pem \
-    --ca-file /etc/tls/client-ca.pem \
+  ETCDCTL_API=$ETCDCTL_API {{ etcd_bin_directory }}/etcdctl \
+    --cert-file {{ etcd_tls_directory }}/cert.pem \
+    --key-file {{ etcd_tls_directory }}/key.pem \
+    --ca-file {{ etcd_tls_directory }}/client-ca.pem \
     --endpoints={% for host in groups['etcd'] | sort() %}{{ host }}:{{ etcd_client_port | default('2379') }}{% if not loop.last %},{% endif %}{% endfor %} \
     $@
 else
