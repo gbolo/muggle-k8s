@@ -1,7 +1,7 @@
 ---
 - name: set ingress_nginx_manifest_template
   set_fact:
-    ingress_nginx_manifest_template: "baremetal-deploy_v{{ ingress_nginx_version }}.yaml.j2"
+    ingress_nginx_manifest_template: "deploy.yaml.j2"
 
 - name: deploy ingress-nginx controller
   k8s:
