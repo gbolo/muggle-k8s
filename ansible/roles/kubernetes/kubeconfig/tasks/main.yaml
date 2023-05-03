@@ -97,7 +97,9 @@
       clusters:
         - cluster:
             certificate-authority-data: {{ lookup('file', '{{ k8s_pki_dir }}/k8s-ca.crt') | b64encode }}
-            server: https://{{ k8s_master_lb_fqdn }}:{{ k8s_master_lb_port | default('6443') }}
+            # use the local nginx proxy
+            server: https://127.0.0.1:6443
+            # server: https://{{ k8s_master_lb_fqdn }}:{{ k8s_master_lb_port | default('6443') }}
           name: {{ k8s_cluster_name }}
       contexts:
         - context:
@@ -153,7 +155,9 @@
       clusters:
         - cluster:
             certificate-authority-data: {{ lookup('file', '{{ k8s_pki_dir }}/k8s-ca.crt') | b64encode }}
-            server: https://{{ k8s_master_lb_fqdn }}:{{ k8s_master_lb_port | default('6443') }}
+            # use the local nginx proxy
+            server: https://127.0.0.1:6443
+            # server: https://{{ k8s_master_lb_fqdn }}:{{ k8s_master_lb_port | default('6443') }}
           name: {{ k8s_cluster_name }}
       contexts:
       - context:
