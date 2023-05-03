@@ -27,7 +27,7 @@ items:
           - list
           - watch
       - apiGroups:
-          - networking.k8s.io
+          - extensions
         resources:
           - networkpolicies
         verbs:
@@ -35,20 +35,20 @@ items:
           - list
           - watch
       - apiGroups:
-          - ''
+          - 'networking.k8s.io'
         resources:
-          - nodes/status
+          - networkpolicies
         verbs:
-          - patch
-          - update
+          - get
+          - list
+          - watch
       - apiGroups:
-          - policy
-        resourceNames:
-          - privileged
+        - ''
         resources:
-          - podsecuritypolicies
+        - nodes/status
         verbs:
-          - use
+        - patch
+        - update
   - apiVersion: rbac.authorization.k8s.io/v1
     kind: ClusterRoleBinding
     metadata:
@@ -67,16 +67,16 @@ items:
     kind: Role
     metadata:
       name: weave-net
+      namespace: kube-system
       labels:
         name: weave-net
-      namespace: kube-system
     rules:
       - apiGroups:
           - ''
-        resourceNames:
-          - weave-net
         resources:
           - configmaps
+        resourceNames:
+          - weave-net
         verbs:
           - get
           - update
@@ -90,9 +90,9 @@ items:
     kind: RoleBinding
     metadata:
       name: weave-net
+      namespace: kube-system
       labels:
         name: weave-net
-      namespace: kube-system
     roleRef:
       kind: Role
       name: weave-net
@@ -109,75 +109,55 @@ items:
         name: weave-net
       namespace: kube-system
     spec:
-      minReadySeconds: 5
+      # Wait 5 seconds to let pod connect before rolling next pod
       selector:
         matchLabels:
           name: weave-net
+      minReadySeconds: 5
       template:
         metadata:
           labels:
             name: weave-net
         spec:
-          priorityClassName: system-node-critical
+          initContainers:
+            - name: weave-init
+              image: {{ weave_kube_image_repo }}:{{ weave_kube_image_tag }}
+              imagePullPolicy: Always
+              command:
+                - /home/weave/init.sh
+              env:
+              securityContext:
+                privileged: true
+              volumeMounts:
+                - name: cni-bin
+                  mountPath: /host/opt
+                - name: cni-bin2
+                  mountPath: /host/home
+                - name: cni-conf
+                  mountPath: /host/etc
+                - name: lib-modules
+                  mountPath: /lib/modules
+                - name: xtables-lock
+                  mountPath: /run/xtables.lock
+                  readOnly: false
           containers:
             - name: weave
               command:
                 - /home/weave/launch.sh
               env:
+                - name: INIT_CONTAINER
+                  value: "true"
                 - name: HOSTNAME
                   valueFrom:
                     fieldRef:
                       apiVersion: v1
                       fieldPath: spec.nodeName
-                - name: WEAVE_PASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                      name: weave-net
-                      key: WEAVE_PASSWORD
-                - name: CHECKPOINT_DISABLE
-                  value: "{{ weave_checkpoint_disable | bool | int }}"
-                - name: CONN_LIMIT
-                  value: "{{ weave_conn_limit | int }}"
-                - name: HAIRPIN_MODE
-                  value: "{{ weave_hairpin_mode | bool | lower }}"
                 - name: IPALLOC_RANGE
                   value: "{{ weave_ipalloc_range }}"
                 - name: EXPECT_NPC
                   value: "{{ weave_expect_npc | bool | int }}"
-{% if weave_kube_peers %}
-                - name: KUBE_PEERS
-                  value: "{{ weave_kube_peers }}"
-{% endif %}
-{% if weave_ipalloc_init %}
-                - name: IPALLOC_INIT
-                  value: "{{ weave_ipalloc_init }}"
-{% endif %}
-{% if weave_expose_ip %}
-                - name: WEAVE_EXPOSE_IP
-                  value: "{{ weave_expose_ip }}"
-{% endif %}
-{% if weave_metrics_addr %}
-                - name: WEAVE_METRICS_ADDR
-                  value: "{{ weave_metrics_addr }}"
-{% endif %}
-{% if weave_status_addr %}
-                - name: WEAVE_STATUS_ADDR
-                  value: "{{ weave_status_addr }}"
-{% endif %}
-{% if weave_iptables_backend %}
-                - name: IPTABLES_BACKEND
-                  value: "{{ weave_iptables_backend }}"
-{% endif %}
-                - name: WEAVE_MTU
-                  value: "{{ weave_mtu | int }}"
-                - name: NO_MASQ_LOCAL
-                  value: "{{ weave_no_masq_local | bool | int }}"
-{% if weave_extra_args %}
-                - name: EXTRA_ARGS
-                  value: "{{ weave_extra_args }}"
-{% endif %}
               image: {{ weave_kube_image_repo }}:{{ weave_kube_image_tag }}
-              imagePullPolicy: IfNotPresent
+              imagePullPolicy: Always
               readinessProbe:
                 httpGet:
                   host: 127.0.0.1
@@ -191,16 +171,12 @@ items:
               volumeMounts:
                 - name: weavedb
                   mountPath: /weavedb
-                - name: cni-bin
-                  mountPath: /host/opt
-                - name: cni-bin2
-                  mountPath: /host/home
-                - name: cni-conf
-                  mountPath: /host/etc
                 - name: dbus
                   mountPath: /host/var/lib/dbus
-                - name: lib-modules
-                  mountPath: /lib/modules
+                  readOnly: true
+                - mountPath: /host/etc/machine-id
+                  name: cni-machine-id
+                  readOnly: true
                 - name: xtables-lock
                   mountPath: /run/xtables.lock
                   readOnly: false
@@ -212,7 +188,8 @@ items:
                       apiVersion: v1
                       fieldPath: spec.nodeName
               image: {{ weave_npc_image_repo }}:{{ weave_npc_image_tag }}
-              imagePullPolicy: IfNotPresent
+              imagePullPolicy: Always
+#npc-args
               resources:
                 requests:
                   cpu: 50m
@@ -224,13 +201,16 @@ items:
                   readOnly: false
           hostNetwork: true
           dnsPolicy: ClusterFirstWithHostNet
-          hostPID: true
+          hostPID: false
           restartPolicy: Always
           securityContext:
             seLinuxOptions: {}
           serviceAccountName: weave-net
           tolerations:
-            - operator: Exists
+            - effect: NoSchedule
+              operator: Exists
+            - effect: NoExecute
+              operator: Exists
           volumes:
             - name: weavedb
               hostPath:
@@ -244,6 +224,9 @@ items:
             - name: cni-conf
               hostPath:
                 path: /etc
+            - name: cni-machine-id
+              hostPath:
+                path: /etc/machine-id
             - name: dbus
               hostPath:
                 path: /var/lib/dbus
@@ -254,14 +237,6 @@ items:
               hostPath:
                 path: /run/xtables.lock
                 type: FileOrCreate
+          priorityClassName: system-node-critical
       updateStrategy:
-        rollingUpdate:
-          maxUnavailable: {{ serial | default('20%') }}
         type: RollingUpdate
-  - apiVersion: v1
-    kind: Secret
-    metadata:
-      name: weave-net
-      namespace: kube-system
-    data:
-      WEAVE_PASSWORD: "{{ weave_password | default("") | b64encode }}"
