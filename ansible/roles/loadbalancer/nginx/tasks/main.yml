@@ -1,0 +1,33 @@
+---
+- name: Install podman
+  ansible.builtin.package:
+    name: podman
+    state: present
+
+- name: make nginx directory
+  file:
+    path: "{{ lb_nginx_home }}"
+    state: directory
+    mode: 0700
+    owner: root
+
+- name: write nginx lb configuration
+  template:
+    src: "k8s-lb.conf"
+    dest: "{{ lb_nginx_home }}/k8s-lb.conf"
+    owner: root
+    mode: 0644
+    backup: yes
+
+- name: create nginx container
+  containers.podman.podman_container:
+    name: k8s-lb-nginx
+    image: docker.io/library/nginx:stable-alpine
+    state: started
+    restart_policy: "on-failure"
+    mounts:
+      - type=bind,source={{ lb_nginx_home }}/k8s-lb.conf,destination=/etc/nginx/nginx.conf
+    ports:
+        - "6443:6443"
+        - "80:80"
+        - "443:443"
