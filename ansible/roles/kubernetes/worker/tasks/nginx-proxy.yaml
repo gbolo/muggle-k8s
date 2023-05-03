@@ -1,0 +1,29 @@
+---
+- name: nginx-proxy | Make nginx directory
+  file:
+    path: "{{ nginx_config_dir }}"
+    state: directory
+    mode: 0700
+    owner: root
+
+- name: nginx-proxy | Write nginx-proxy configuration
+  template:
+    src: "proxy/nginx-proxy.conf.j2"
+    dest: "{{ nginx_config_dir }}/nginx.conf"
+    owner: root
+    mode: 0755
+    backup: yes
+
+- name: nginx-proxy | Get checksum from config
+  stat:
+    path: "{{ nginx_config_dir }}/nginx.conf"
+    get_attributes: no
+    get_checksum: yes
+    get_mime: no
+  register: nginx_stat
+
+- name: nginx-proxy | Write static pod
+  template:
+    src: etc/kubernetes/manifests/nginx-proxy.yaml
+    dest: /etc/kubernetes/manifests/nginx-proxy.yaml
+    mode: 0640

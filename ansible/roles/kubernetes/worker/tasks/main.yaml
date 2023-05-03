@@ -14,6 +14,11 @@
   tags:
     - configure
 
+- name: Push Nginx-Proxy configs
+  include: nginx-proxy.yaml
+  tags:
+    - configure
+
 - name: Enable Services
   include: service.yaml
   tags:

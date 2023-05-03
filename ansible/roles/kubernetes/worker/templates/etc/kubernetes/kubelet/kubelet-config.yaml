@@ -4,9 +4,24 @@
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
 
-# https://github.com/kubernetes/kubernetes/issues/56850
-cgroupDriver: cgroupfs
-kubeletCgroups: /systemd/system.slice
+# use containerd
+containerRuntimeEndpoint: "unix:///run/containerd/containerd.sock"
+
+nodeStatusUpdateFrequency: "10s"
+failSwapOn: true
+
+# cgroupDriver: cgroupfs
+# kubeletCgroups: /systemd/system.slice
+cgroupDriver: systemd
+kubeletCgroups: /kube.slice/kubelet.service
+
+address: 0.0.0.0
+readOnlyPort: 0
+healthzPort: 10248
+healthzBindAddress: 127.0.0.1
+
+maxPods: 110
+podPidsLimit: -1
 
 authentication:
   anonymous:
@@ -14,13 +29,22 @@ authentication:
   webhook:
     enabled: true
   x509:
-    clientCAFile: "/etc/kubernetes/k8s-ca.crt"
+    clientCAFile: /etc/kubernetes/k8s-ca.crt
 authorization:
   mode: Webhook
 
 clusterDomain: "{{ k8s_cluster_domain }}"
 clusterDNS:
   - "{{ k8s_cluster_dns_ip }}"
+
+# this will create the apiserver and other master components
+staticPodPath: /etc/kubernetes/manifests
+containerLogMaxFiles: 5
+containerLogMaxSize: 10Mi
+
+kubeReserved:
+  cpu: 200m
+  memory: 512M
 
 # podCIDR is only used in standalone mode
 # podCIDR: "{{ k8s_pod_network_cidr }}"
@@ -29,3 +53,13 @@ resolvConf: "/etc/resolv.conf"
 runtimeRequestTimeout: "15m"
 tlsCertFile: "/etc/kubernetes/kubelet/{{ inventory_hostname }}-kubelet.crt"
 tlsPrivateKeyFile: "/etc/kubernetes/kubelet/{{ inventory_hostname }}-kubelet.key"
+
+# let the kublet modify some kernel params if needed
+protectKernelDefaults: false
+
+rotateCertificates: true
+
+eventRecordQPS: 5
+shutdownGracePeriod: 60s
+shutdownGracePeriodCriticalPods: 20s
+

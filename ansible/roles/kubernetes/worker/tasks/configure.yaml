@@ -30,6 +30,7 @@
     - /etc/kubernetes
     - /etc/kubernetes/kubelet
     - /etc/kubernetes/kube-proxy
+    - /etc/kubernetes/manifests
 
 - name: Copy CA certificates
   copy:

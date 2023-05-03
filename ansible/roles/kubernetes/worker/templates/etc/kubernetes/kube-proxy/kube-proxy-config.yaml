@@ -18,7 +18,7 @@ mode: "iptables"
 # If set it to a non-zero IP block, kube-proxy will filter that down to just the IPs that applied to the node.
 # An empty string slice is meant to select all network interfaces.
 nodePortAddresses:
-{% for address in k8s_kubelet_node_port_dddresses %}
+{% for address in k8s_kubelet_node_port_addresses %}
   - {{ address }}
 {% endfor %}
 
