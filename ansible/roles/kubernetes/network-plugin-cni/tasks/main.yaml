@@ -1,10 +1,13 @@
-- name: CNI | make sure /opt/cni/bin exists
+- name: CNI | make sure cni dirs exists
   become: true
   file:
-    path: /opt/cni/bin
+    path: "{{ item }}"
     state: directory
     mode: 0755
     recurse: true
+  with_items:
+    - /opt/cni/bin
+    - /etc/cni/net.d
 
 - name: CNI | Copy cni plugins
   become: true
