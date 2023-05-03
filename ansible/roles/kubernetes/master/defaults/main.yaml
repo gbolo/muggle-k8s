@@ -15,7 +15,7 @@ k8s_cluster_domain: cluster.local
 # If set it to "127.0.0.0/8", kube-proxy will only select the loopback interface for NodePort.
 # If set it to a non-zero IP block, kube-proxy will filter that down to just the IPs that applied to the node.
 # An empty string slice is meant to select all network interfaces.
-k8s_kubelet_node_port_dddresses:
+k8s_kubelet_node_port_addresses:
   - "{{ ansible_default_ipv4.address }}/32"
   - 127.0.0.0/8
 

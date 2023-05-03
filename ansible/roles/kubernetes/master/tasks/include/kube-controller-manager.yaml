@@ -11,6 +11,9 @@
     # kubernetes CA
     - src: "{{ k8s_pki_dir }}/k8s-ca.crt"
       dest: /etc/kubernetes/kube-controller-manager/ca.crt
+    # needs the CA key since it issues certs now ;(
+    - src: "{{ k8s_pki_dir }}/k8s-ca.key"
+      dest: /etc/kubernetes/kube-controller-manager/ca.key
     # service account signing
     - src: "{{ k8s_pki_dir }}/service-account.key"
       dest: /etc/kubernetes/kube-controller-manager/service-account.key

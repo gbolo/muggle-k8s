@@ -11,10 +11,14 @@ spec:
   containers:
   - command:
     - kube-scheduler
+    - --authentication-kubeconfig=/etc/kubernetes/kube-scheduler/kube-scheduler.kubeconfig
+    - --authorization-kubeconfig=/etc/kubernetes/kube-scheduler/kube-scheduler.kubeconfig
     - --bind-address=0.0.0.0
-    - --port=0
     - --config=/etc/kubernetes/kube-scheduler/config.yaml
-    
+    - --kubeconfig=/etc/kubernetes/kube-scheduler/kube-scheduler.kubeconfig
+    - --leader-elect=true
+
+
     image: k8s.gcr.io/kube-scheduler:{{ k8s_version }}
     imagePullPolicy: IfNotPresent
     livenessProbe:

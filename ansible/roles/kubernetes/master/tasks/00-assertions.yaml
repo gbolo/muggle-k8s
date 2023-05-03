@@ -3,8 +3,8 @@
   assert:
     that:
       # make sure k8s_pod_network_cidr is a valid subnet
-      - k8s_pod_network_cidr is defined and k8s_pod_network_cidr | ansible.netcommon.ipaddr('net')
+      - k8s_pod_network_cidr is defined and k8s_pod_network_cidr is ansible.utils.ipv4
       # The encryption key should be explicitly set by the user
-      - encryption_key is defined and encryption_key | length >= 32
+      - encryption_key is defined and encryption_key | length == 32
       # make sure that a cluster name is set
       - k8s_cluster_name is defined and k8s_cluster_name | length >= 3

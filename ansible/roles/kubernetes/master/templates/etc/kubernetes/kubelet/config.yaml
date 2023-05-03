@@ -4,13 +4,16 @@
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
 
+# use containerd
+containerRuntimeEndpoint: "unix:///run/containerd/containerd.sock"
+
 nodeStatusUpdateFrequency: "10s"
 failSwapOn: true
 
-cgroupDriver: cgroupfs
-kubeletCgroups: /systemd/system.slice
-# cgroupDriver: systemd
+# cgroupDriver: cgroupfs
 # kubeletCgroups: /systemd/system.slice
+cgroupDriver: systemd
+kubeletCgroups: /kube.slice/kubelet.service
 
 address: 0.0.0.0
 readOnlyPort: 0
@@ -18,6 +21,7 @@ healthzPort: 10248
 healthzBindAddress: 127.0.0.1
 
 maxPods: 110
+podPidsLimit: -1
 
 authentication:
   anonymous:
@@ -35,6 +39,8 @@ clusterDNS:
 
 # this will create the apiserver and other master components
 staticPodPath: /etc/kubernetes/manifests
+containerLogMaxFiles: 5
+containerLogMaxSize: 10Mi
 
 kubeReserved:
   cpu: 200m
@@ -43,10 +49,16 @@ kubeReserved:
 # podCIDR is only used in standalone mode
 # podCIDR: "{{ k8s_pod_network_cidr }}"
 
-resolvConf: /etc/resolv.conf
+resolvConf: "/etc/resolv.conf"
 runtimeRequestTimeout: "15m"
 tlsCertFile: /etc/kubernetes/kubelet/kubelet-server.crt
 tlsPrivateKeyFile: /etc/kubernetes/kubelet/kubelet-server.key
 
-protectKernelDefaults: true
+# let the kublet modify some kernel params if needed
+protectKernelDefaults: false
+
 rotateCertificates: true
+
+eventRecordQPS: 5
+shutdownGracePeriod: 60s
+shutdownGracePeriodCriticalPods: 20s

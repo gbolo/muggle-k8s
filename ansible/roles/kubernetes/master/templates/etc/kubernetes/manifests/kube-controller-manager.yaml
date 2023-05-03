@@ -11,18 +11,32 @@ spec:
   containers:
   - command:
     - kube-controller-manager
-    - --bind-address=0.0.0.0
-    - --cluster-cidr={{ k8s_pod_network_cidr }}
-    - --node-cidr-mask-size={{ k8s_node_cidr_mask_size_for_pod_network }}
     - --allocate-node-cidrs=true
+    - --authentication-kubeconfig=/etc/kubernetes/kube-controller-manager/kube-controller-manager.kubeconfig
+    - --authorization-kubeconfig=/etc/kubernetes/kube-controller-manager/kube-controller-manager.kubeconfig
+    - --bind-address=0.0.0.0
+    - --client-ca-file=/etc/kubernetes/kube-controller-manager/ca.crt
+    - --cluster-cidr={{ k8s_pod_network_cidr }}
     - --cluster-name={{ k8s_cluster_name }}
+    - --cluster-signing-cert-file=/etc/kubernetes/kube-controller-manager/ca.crt
+    - --cluster-signing-key-file=/etc/kubernetes/kube-controller-manager/ca.key
+    - --configure-cloud-routes=false
+    - --controllers=*,bootstrapsigner,tokencleaner
     - --kubeconfig=/etc/kubernetes/kube-controller-manager/kube-controller-manager.kubeconfig
     - --leader-elect=true
+    - --leader-elect-lease-duration=15s
+    - --leader-elect-renew-deadline=10s
+    - --node-cidr-mask-size=24
+    - --node-monitor-grace-period=40s
+    - --node-monitor-period=5s
+    - --profiling=False
+    # - --requestheader-client-ca-file=/etc/kubernetes/ssl/front-proxy-ca.crt
     - --root-ca-file=/etc/kubernetes/kube-controller-manager/ca.crt
     - --service-account-private-key-file=/etc/kubernetes/kube-controller-manager/service-account.key
-    - --use-service-account-credentials=true
     - --service-cluster-ip-range={{ k8s_service_cluster_ip_range }}
-    - --v=2
+    - --terminated-pod-gc-threshold=12500
+    - --use-service-account-credentials=true
+
 
     image: k8s.gcr.io/kube-controller-manager:{{ k8s_version }}
     imagePullPolicy: IfNotPresent

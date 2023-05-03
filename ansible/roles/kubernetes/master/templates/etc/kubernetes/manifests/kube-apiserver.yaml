@@ -18,8 +18,6 @@ spec:
     - --advertise-address={{ ansible_default_ipv4.address }}
     - --bind-address=0.0.0.0
     - --secure-port=6443
-    # this flag is DEPRECATED
-    - --insecure-port=0
 
     # server TLS settings (served on secure-port)
     - --tls-cert-file=/etc/kubernetes/kube-apiserver/apiserver.crt
@@ -38,7 +36,8 @@ spec:
     # endpoint reconciler
     - --endpoint-reconciler-type={{ k8s_apiserver_endpoint_reconciler_type }}
     # only used if endpoint-reconciler-type is master-count
-    - --apiserver-count={{ k8s_apiserver_count }}
+    # NOTE: DEPRECATED -- removing
+    # - --apiserver-count={{ k8s_apiserver_count }}
 
     # plug-ins to do authorization on secure port
     - --authorization-mode=Node,RBAC
@@ -76,6 +75,10 @@ spec:
     # a set of key=value pairs that enable or disable built-in APIs
     - --runtime-config={{ k8s_runtime_config }}
 
+    # service account config
+    - --service-account-lookup=True
+    - --service-account-issuer=https://kubernetes.default.svc
+    - --service-account-signing-key-file=/etc/kubernetes/kube-apiserver/service-account.key
     # public key used to verify ServiceAccount tokens
     - --service-account-key-file=/etc/kubernetes/kube-apiserver/service-account.crt
 
@@ -100,10 +103,6 @@ spec:
     # feature gates
     # - --feature-gates=BoundServiceAccountTokenVolume=false
 
-    # 1.20 required flags
-    - --service-account-issuer=https://kubernetes.default.svc
-    - --service-account-signing-key-file=/etc/kubernetes/kube-apiserver/service-account.key
-
 
 
     image: k8s.gcr.io/kube-apiserver:{{ k8s_version }}
@@ -112,10 +111,30 @@ spec:
       failureThreshold: 8
       httpGet:
         host: {{ ansible_default_ipv4.address }}
-        path: /healthz
+        path: /livez
         port: 6443
         scheme: HTTPS
       initialDelaySeconds: 15
+      periodSeconds: 10
+      timeoutSeconds: 15
+    readinessProbe:
+      failureThreshold: 3
+      httpGet:
+        host: {{ ansible_default_ipv4.address }}
+        path: /readyz
+        port: 6443
+        scheme: HTTPS
+      periodSeconds: 1
+      timeoutSeconds: 15
+    startupProbe:
+      failureThreshold: 30
+      httpGet:
+        host: {{ ansible_default_ipv4.address }}
+        path: /livez
+        port: 6443
+        scheme: HTTPS
+      initialDelaySeconds: 10
+      periodSeconds: 10
       timeoutSeconds: 15
     name: kube-apiserver
     resources:
