@@ -1,7 +1,7 @@
 ---
 artifacts_dir: "{{ playbook_dir }}/../artifacts"
 bin_dir: "{{ artifacts_dir }}/bin"
-k8s_version: v1.20.1
+k8s_version: v1.27.1
 
 bin_arch: amd64
 download_baseurl: https://storage.googleapis.com/kubernetes-release/release/{{ k8s_version }}/bin/linux/{{ bin_arch }}
