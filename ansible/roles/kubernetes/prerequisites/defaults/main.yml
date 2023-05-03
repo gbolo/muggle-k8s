@@ -1,0 +1,19 @@
+required_packages:
+  - python3-libselinux
+  - device-mapper-libs
+  - nss
+  - ipset
+  - conntrack
+  - container-selinux
+  - libseccomp
+  - curl
+  - rsync
+  - socat
+  - unzip
+  - e2fsprogs
+  - xfsprogs
+  - ebtables
+  - bash-completion
+  - tar
+  # when kube mode is set to ipvs
+  # - ipvsadm

@@ -1,0 +1,40 @@
+- name: install required packages
+  ansible.builtin.package:
+    name: "{{ required_packages }}"
+    state: present
+
+- name: ensure kernel modules are loaded
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - br_netfilter
+    # required when using weave
+    - iptable_raw
+    ## NOTE: only needed if kube-proxy mode is ipvs
+    # - ip_vs
+    # - ip_vs_rr
+    # - ip_vs_wrr
+    # - ip_vs_sh
+    # - nf_conntrack_ipv4
+
+- name: set various kernel options
+  ansible.posix.sysctl:
+    sysctl_file: /etc/sysctl.d/99-muggle-k8s.conf
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: yes
+  with_items:
+    - { name: kernel.keys.root_maxbytes, value: 25000000 }
+    - { name: kernel.keys.root_maxkeys, value: 1000000 }
+    - { name: kernel.panic, value: 10 }
+    - { name: kernel.panic_on_oops, value: 1 }
+    - { name: vm.overcommit_memory, value: 1 }
+    - { name: vm.panic_on_oom, value: 0 }
+    - { name: net.ipv4.ip_local_reserved_ports, value: "{{ k8s_service_node_port_range }}"}
+    - { name: net.ipv4.ip_forward, value: 1 }
+    # - { name: net.ipv6.conf.all.forwarding, value: 1 }
+    - { name: net.bridge.bridge-nf-call-iptables, value: 1 }
+    - { name: net.bridge.bridge-nf-call-ip6tables, value: 1 }
+    - { name: net.bridge.bridge-nf-call-arptables, value: 1 }
