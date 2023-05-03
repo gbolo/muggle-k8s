@@ -3,6 +3,12 @@
     name: "{{ required_packages }}"
     state: present
 
+- name: set selinux policy
+  ansible.posix.selinux:
+    policy: targeted
+    state: "{{ selinux_state | default('permissive') }}"
+  changed_when: false
+
 - name: ensure kernel modules are loaded
   community.general.modprobe:
     name: "{{ item }}"
