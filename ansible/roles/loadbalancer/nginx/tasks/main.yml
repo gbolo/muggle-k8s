@@ -13,8 +13,8 @@
 
 - name: write nginx lb configuration
   template:
-    src: "k8s-lb.conf"
-    dest: "{{ lb_nginx_home }}/k8s-lb.conf"
+    src: "nginx.conf"
+    dest: "{{ lb_nginx_home }}/nginx.conf"
     owner: root
     mode: 0644
     backup: yes
@@ -26,7 +26,7 @@
     state: started
     restart_policy: "on-failure"
     mounts:
-      - type=bind,source={{ lb_nginx_home }}/k8s-lb.conf,destination=/etc/nginx/nginx.conf
+      - type=bind,source={{ lb_nginx_home }}/nginx.conf,destination=/etc/nginx/nginx.conf
     ports:
         - "6443:6443"
         - "80:80"
