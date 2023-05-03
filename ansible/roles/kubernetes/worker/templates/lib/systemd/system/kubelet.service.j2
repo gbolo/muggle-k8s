@@ -8,10 +8,11 @@ Documentation=https://kubernetes.io/docs
 ExecStart=/usr/local/bin/kubelet \
   --container-runtime-endpoint=unix:///run/containerd/containerd.sock \
   --config=/etc/kubernetes/kubelet/kubelet-config.yaml \
-  --kubeconfig=/etc/kubernetes/kubelet/{{ inventory_hostname }}.kubeconfig \
+  --bootstrap-kubeconfig=/etc/kubernetes/kubelet/bootstrap.kubeconfig \
+  --kubeconfig=/etc/kubernetes/kubelet/kubeconfig \
   --node-ip={{ ansible_default_ipv4.address }} \
   --register-node=true \
-  --v=2
+  --v={{ kubelet_log_verbosity_level | default('2') }}
 Restart=on-failure
 RestartSec=5
 

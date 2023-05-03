@@ -3,6 +3,9 @@
   hosts: master
   become: yes
   roles:
+    - common
+    - kubernetes/cri/containerd
+    - kubernetes/cri/tools
     - kubernetes/master
 
 - name: label and taint all master nodes
@@ -45,3 +48,24 @@
       tags:
         - label
         - taint
+
+    - name: enable kublet node csr auto approvals
+      k8s:
+        kubeconfig: "{{ kubeconfig_dir }}/admin.kubeconfig"
+        state: present
+        definition:
+          apiVersion: rbac.authorization.k8s.io/v1
+          kind: ClusterRoleBinding
+          metadata:
+            name: mugglek8s:node-autoapprove-certificate-rotation
+          roleRef:
+            apiGroup: rbac.authorization.k8s.io
+            kind: ClusterRole
+            name: system:certificates.k8s.io:certificatesigningrequests:selfnodeclient
+          subjects:
+          - apiGroup: rbac.authorization.k8s.io
+            kind: Group
+            name: system:nodes
+      retries: 6
+      delay: 10
+      ignore_errors: yes

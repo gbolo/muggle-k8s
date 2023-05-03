@@ -73,7 +73,7 @@
     - src: "{{ k8s_pki_dir }}/{{ inventory_hostname }}-kubelet.key"
       dest: "/etc/kubernetes/kubelet/"
     - src: "{{ kubeconfig_dir }}/{{ inventory_hostname }}.kubeconfig"
-      dest: "/etc/kubernetes/kubelet/"
+      dest: "/etc/kubernetes/kubelet/bootstrap.kubeconfig"
     - src: "{{ kubeconfig_dir }}/kube-proxy.kubeconfig"
       dest: "/etc/kubernetes/kube-proxy/"
 

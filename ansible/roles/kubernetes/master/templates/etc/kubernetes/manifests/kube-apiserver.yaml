@@ -35,9 +35,6 @@ spec:
 
     # endpoint reconciler
     - --endpoint-reconciler-type={{ k8s_apiserver_endpoint_reconciler_type }}
-    # only used if endpoint-reconciler-type is master-count
-    # NOTE: DEPRECATED -- removing
-    # - --apiserver-count={{ k8s_apiserver_count }}
 
     # plug-ins to do authorization on secure port
     - --authorization-mode=Node,RBAC

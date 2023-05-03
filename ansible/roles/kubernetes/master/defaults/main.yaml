@@ -73,3 +73,6 @@ k8s_apiserver_count: "{{ groups['master'] | length }}"
 
 # Mask size for node cidr in cluster. Default is 24 for IPv4 and 64 for IPv6.
 k8s_node_cidr_mask_size_for_pod_network: 24
+
+# verbosity log level for kubelet
+kubelet_log_verbosity_level: 2

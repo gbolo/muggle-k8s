@@ -6,4 +6,4 @@
       # We shouldn't have a default value for it.
       - k8s_master_lb_fqdn is defined and k8s_master_lb_fqdn | length > 3
       # make sure that this is a proper IP
-      - k8s_apiserver_cluster_ip is defined and k8s_apiserver_cluster_ip | ansible.netcommon.ipv4
+      - k8s_apiserver_cluster_ip is defined and k8s_apiserver_cluster_ip is ansible.utils.ipv4

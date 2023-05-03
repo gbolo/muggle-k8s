@@ -22,3 +22,6 @@ k8s_kubelet_node_port_addresses:
 
 # used for nginx proxy which replaces the need for a load balancer
 nginx_config_dir: /etc/nginx-proxy
+
+
+kubelet_log_verbosity_level: 4

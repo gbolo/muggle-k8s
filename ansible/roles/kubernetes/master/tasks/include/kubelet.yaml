@@ -31,7 +31,7 @@
 - name: kubelet | push kubeconfig files
   copy:
     src: "{{ kubeconfig_dir }}/{{ inventory_hostname }}.kubeconfig"
-    dest: /etc/kubernetes/kubelet/kubelet.kubeconfig
+    dest: /etc/kubernetes/kubelet/bootstrap.kubeconfig
     owner: root
     group: root
     mode: 0644
