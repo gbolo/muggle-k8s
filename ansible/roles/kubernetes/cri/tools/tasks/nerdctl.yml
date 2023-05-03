@@ -1,0 +1,31 @@
+- name: ensure directories are present
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - "{{ tools_home_dir }}"
+    - "{{ tools_home_dir }}/nerdctl_v{{ nerdctl_version }}"
+
+- name: download nerdctl archive
+  ansible.builtin.get_url:
+    url: "{{ nerdctl_archive_url }}"
+    dest: "{{ tools_home_dir }}/nerdctl_v{{ nerdctl_version }}/nerdctl-v{{ nerdctl_version }}.tgz"
+    mode: 0644
+
+- name: extract nerdctl bin from archive
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "{{ tools_home_dir }}/nerdctl_v{{ nerdctl_version }}/nerdctl-v{{ nerdctl_version }}.tgz"
+    dest: "{{ tools_home_dir }}/nerdctl_v{{ nerdctl_version }}/"
+    creates: "{{ tools_home_dir }}/nerdctl_v{{ nerdctl_version }}/nerdctl"
+
+- name: symlink to desired nerdctl version
+  ansible.builtin.file:
+    state: link
+    src: "{{ tools_home_dir }}/nerdctl_v{{ nerdctl_version }}/nerdctl"
+    dest: "/usr/bin/nerdctl"
+    owner: root
+    group: root

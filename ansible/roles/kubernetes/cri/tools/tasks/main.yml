@@ -1,0 +1,9 @@
+- name: install crictl
+  include: crictl.yml
+  tags:
+    - crictl
+
+- name: install nerdctl
+  include: nerdctl.yml
+  tags:
+    - nerdctl

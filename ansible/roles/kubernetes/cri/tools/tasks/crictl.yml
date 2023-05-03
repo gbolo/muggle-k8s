@@ -1,0 +1,31 @@
+- name: ensure directories are present
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - "{{ tools_home_dir }}"
+    - "{{ tools_home_dir }}/crictl_v{{ crictl_version }}"
+
+- name: download crictl archive
+  ansible.builtin.get_url:
+    url: "{{ crictl_archive_url }}"
+    dest: "{{ tools_home_dir }}/crictl_v{{ crictl_version }}/crictl-v{{ crictl_version }}.tgz"
+    mode: 0644
+
+- name: extract crictl bin from archive
+  ansible.builtin.unarchive:
+    remote_src: true
+    src: "{{ tools_home_dir }}/crictl_v{{ crictl_version }}/crictl-v{{ crictl_version }}.tgz"
+    dest: "{{ tools_home_dir }}/crictl_v{{ crictl_version }}/"
+    creates: "{{ tools_home_dir }}/crictl_v{{ crictl_version }}/crictl"
+
+- name: symlink to desired crictl version
+  ansible.builtin.file:
+    state: link
+    src: "{{ tools_home_dir }}/crictl_v{{ crictl_version }}/crictl"
+    dest: "/usr/bin/crictl"
+    owner: root
+    group: root
